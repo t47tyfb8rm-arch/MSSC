@@ -2,5 +2,7 @@ GITHUB/github1.md
 GITHUB/token.md
 server.log
 *.log
+food-*.png
+map-preview.png
 .DS_Store
 Thumbs.db
