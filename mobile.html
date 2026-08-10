@@ -171,6 +171,55 @@
     .form-tools { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
     .map-tag { position: absolute; right: 8px; bottom: 8px; padding: 4px 7px; border-radius: 999px; color: #746e67; background: rgba(255,255,255,.92); font-size: 11px; font-weight: 800; }
     .mini-map { position: relative; }
+    /* v4 App visual refresh */
+    :root {
+      --bg: #F7F7F9;
+      --soft: #F2F2F4;
+      --line: #ECECEF;
+      --text: #202124;
+      --muted: #666666;
+      --accent: #F2761D;
+      --accent-2: #FF8A1F;
+    }
+    body { background: #E9E9ED; }
+    .phone { background: var(--bg); box-shadow: 0 12px 48px rgba(0,0,0,.16); }
+    .screen { padding-left: 16px; padding-right: 16px; }
+    .top { margin-left: -16px; margin-right: -16px; padding: calc(10px + env(safe-area-inset-top)) 16px 10px; background: rgba(247,247,249,.95); border-bottom: 0; }
+    .app-nav { align-items: center; }
+    .title-block h1 { font-size: 28px; letter-spacing: 0; font-weight: 950; }
+    .title-block p { margin-top: 3px; font-size: 13px; color: #8B8B90; }
+    .add-btn { width: 52px; height: 52px; min-height: 52px; border-radius: 50%; font-size: 30px; background: linear-gradient(145deg, #FF8A1F, #EC6F17); box-shadow: 0 10px 22px rgba(242,118,29,.34), 0 2px 6px rgba(0,0,0,.12); }
+    .search { top: 76px; height: 48px; margin: 12px 0 10px; border: 0; border-radius: 12px; background: #F2F2F4; box-shadow: inset 0 1px 0 rgba(255,255,255,.9), 0 4px 12px rgba(0,0,0,.04); padding: 0 14px; }
+    .search input { font-size: 15px; color: #303033; }
+    .mode-tabs { gap: 9px; padding: 4px 0 8px; }
+    .mode-tab, .pill { min-height: 36px; padding: 0 15px; border: 0; border-radius: 18px; background: #ECECEF; color: #4E4E53; font-size: 13px; box-shadow: inset 0 1px 0 rgba(255,255,255,.7); }
+    .mode-tab.active, .pill.active { color: #fff; background: linear-gradient(145deg, #FF8A1F, #F2761D); box-shadow: 0 5px 12px rgba(242,118,29,.22); }
+    .mode-hint { margin: -2px 2px 8px; color: #8C8C92; }
+    .category-strip { gap: 9px; padding: 2px 0 8px; }
+    .stats { margin: 8px 0 8px; padding: 0 2px; }
+    .stat strong { color: #F2761D; }
+    .count { margin: 12px 2px 9px; font-size: 16px; color: #252528; }
+    .list { gap: 10px; overflow: visible; }
+    .row { padding: 13px; margin-bottom: 0; border: 0; border-radius: 14px; background: #FFFFFF; box-shadow: 0 2px 10px rgba(0,0,0,.08); }
+    .row-top { gap: 10px; align-items: flex-start; }
+    .num { min-width: 38px; height: 26px; border-radius: 999px; background: #FFF0E2; color: #F2761D; font-size: 13px; box-shadow: inset 0 1px 0 rgba(255,255,255,.9); }
+    .row-name { font-size: 18px; line-height: 1.25; color: #202124; font-weight: 950; }
+    .row-meta, .row-address { font-size: 12px; color: #666666; line-height: 1.45; }
+    .row-source { color: #9A9AA0; }
+    .row-must { margin-top: 10px; padding: 8px 10px; border-radius: 8px; color: #C45F16; background: #FFF3E8; font-size: 12px; }
+    .row-address { margin-top: 8px; }
+    .row-actions { grid-template-columns: 1fr 1fr 36px; gap: 9px; margin-top: 11px; }
+    .row-action { height: 38px; border-radius: 12px; background: #F4F4F6; color: #55555A; font-size: 13px; box-shadow: inset 0 1px 0 rgba(255,255,255,.8); }
+    .row-action.primary { color: #fff; background: linear-gradient(145deg, #FF8A1F, #F2761D); box-shadow: 0 6px 14px rgba(242,118,29,.24); }
+    .row-actions .row-action:last-child { width: 36px; padding: 0; border-radius: 12px; font-size: 18px; color: #6B6B70; background: #F2F2F4; }
+    .row.closed { background: #F0F0F2; }
+    .row.closed::after { border-radius: 14px; }
+    .nav-head { margin-left: -16px; margin-right: -16px; padding-left: 16px; padding-right: 16px; background: rgba(247,247,249,.95); border-bottom: 0; }
+    .detail-hero, .form-card, .ai-panel, .info-line, .map, .dish-card, .poi-results, .poi-item { border: 0; border-radius: 14px; background: #FFFFFF; box-shadow: 0 2px 10px rgba(0,0,0,.08); }
+    .form-card { padding: 13px; }
+    .field, textarea.field { border: 0; border-radius: 12px; background: #F2F2F4; }
+    .lookup-btn, .save-btn, .add-dish-btn { border-radius: 12px; }
+    .save-btn { background: linear-gradient(145deg, #FF8A1F, #F2761D); box-shadow: 0 8px 18px rgba(242,118,29,.26); }
     @media (max-width: 370px) {
       .screen { padding-left: 16px; padding-right: 16px; }
       .title-block h1 { font-size: 21px; }
