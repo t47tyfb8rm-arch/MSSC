@@ -419,6 +419,43 @@
       background: #F7F7F9;
       box-shadow: -16px 0 34px rgba(0,0,0,.08);
     }
+    /* v11 compact POI type and iOS zoom guard */
+    html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+    input, textarea, select { font-size: 16px; }
+    #formScreen .field,
+    #formScreen textarea.field,
+    #formScreen .dish-name-input,
+    .search input {
+      font-size: 16px;
+    }
+    #poiSheet .sheet-title { font-size: 15px; }
+    #poiSheet .poi-guide {
+      padding: 7px 9px;
+      font-size: 11px;
+      line-height: 1.4;
+    }
+    #poiSheet .poi-item {
+      gap: 8px;
+      padding: 8px 9px;
+      border-radius: 12px;
+    }
+    #poiSheet .poi-item strong {
+      font-size: 12px;
+      line-height: 1.32;
+      font-weight: 850;
+    }
+    #poiSheet .poi-item span {
+      margin-top: 3px;
+      font-size: 10px;
+      line-height: 1.32;
+    }
+    #poiSheet .poi-item .source-note { font-size: 9px; }
+    #poiSheet .poi-select {
+      width: 46px;
+      height: 30px;
+      font-size: 11px;
+      box-shadow: 0 4px 10px rgba(242,118,29,.18);
+    }
     @media (max-width: 370px) {
       .row { grid-template-columns: 96px 1fr; gap: 10px; }
       .row-cover { width: 96px; height: 104px; }
