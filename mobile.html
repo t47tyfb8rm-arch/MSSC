@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>美食收藏</title>
+  <style>
+    :root {
+      --bg: #fbfaf8;
+      --text: #272321;
+      --muted: #8d8a86;
+      --soft: #f4f1ee;
+      --line: #ebe7e2;
+      --accent: #df6d23;
+      --accent-2: #f0831f;
+      --danger: #e54b3d;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    }
+    * { box-sizing: border-box; }
+    html { min-height: 100%; background: #ece9e4; }
+    body { margin: 0; min-height: 100vh; color: var(--text); background: #ece9e4; letter-spacing: 0; }
+    button, input, textarea { font: inherit; }
+    button { border: 0; cursor: pointer; background: none; color: inherit; }
+    a { color: inherit; text-decoration: none; }
+    .phone { width: min(100%, 430px); min-height: 100vh; margin: 0 auto; background: var(--bg); box-shadow: 0 0 42px rgba(37, 32, 28, .10); overflow: hidden; }
+    .screen { min-height: 100vh; padding: 34px 22px 28px; display: none; }
+    .screen.active { display: block; }
+    .top { display: flex; align-items: center; justify-content: space-between; gap: 14px; margin-bottom: 26px; }
+    .title-block h1 { margin: 0; font-size: 38px; line-height: 1.05; font-weight: 900; }
+    .title-block p { margin: 10px 0 0; color: var(--muted); font-size: 16px; }
+    .add-btn, .save-btn { min-height: 48px; border-radius: 8px; padding: 0 18px; color: #fff; background: linear-gradient(135deg, var(--accent), var(--accent-2)); font-weight: 800; box-shadow: 0 12px 26px rgba(223, 109, 35, .22); white-space: nowrap; }
+    .add-btn { font-size: 16px; }
+    .save-btn { width: 100%; height: 58px; margin-top: 22px; font-size: 20px; }
+    .search { height: 52px; border: 1px solid var(--line); border-radius: 8px; background: #fff; display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 8px; padding: 0 14px; box-shadow: 0 7px 18px rgba(60, 45, 32, .04); }
+    .search input { width: 100%; border: 0; outline: none; color: var(--text); background: transparent; font-size: 15px; }
+    .filter-btn { width: 42px; height: 36px; border-radius: 8px; color: #6e6a65; background: #f7f5f2; font-weight: 800; }
+    .category-strip { display: none; gap: 8px; overflow-x: auto; padding: 14px 0 2px; scrollbar-width: none; }
+    .category-strip.show { display: flex; }
+    .category-strip::-webkit-scrollbar { display: none; }
+    .pill { flex: 0 0 auto; min-height: 32px; padding: 0 12px; border-radius: 999px; border: 1px solid var(--line); color: #706b65; background: #fff; font-size: 13px; }
+    .pill.active { border-color: rgba(223, 109, 35, .32); color: var(--accent); background: #fff3ea; font-weight: 800; }
+    .count { margin: 26px 0 18px; color: #5f5b56; font-size: 15px; }
+    .list { display: grid; }
+    .row { display: grid; grid-template-columns: 32px 96px 1fr 22px; gap: 14px; align-items: center; width: 100%; text-align: left; padding: 18px 0; border-bottom: 1px solid var(--line); }
+    .row:last-child { border-bottom: 0; }
+    .num { color: var(--accent); font-size: 28px; font-weight: 900; text-align: left; }
+    .thumb { width: 96px; height: 96px; border-radius: 8px; object-fit: cover; background: var(--soft); }
+    .row-main { min-width: 0; }
+    .row-name { display: block; font-size: 18px; line-height: 1.25; font-weight: 900; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .row-meta, .row-address { display: block; color: #7d7973; font-size: 14px; line-height: 1.45; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .row-meta { margin-top: 7px; }
+    .row-must { display: block; margin-top: 6px; color: var(--accent); font-size: 14px; line-height: 1.45; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .row-address { margin-top: 7px; }
+    .chev { color: #8b8781; font-size: 28px; line-height: 1; }
+    .empty { margin-top: 54px; color: var(--muted); text-align: center; line-height: 1.7; }
+    .nav-head { display: grid; grid-template-columns: 54px 1fr 54px; align-items: center; margin-bottom: 24px; }
+    .back { width: 42px; height: 42px; border-radius: 8px; font-size: 32px; line-height: 1; color: #3f3b37; }
+    .nav-title { text-align: center; font-size: 20px; font-weight: 900; }
+    .detail-title { display: flex; align-items: flex-start; justify-content: space-between; gap: 14px; }
+    .detail-title h2 { margin: 0; font-size: 34px; line-height: 1.16; font-weight: 900; }
+    .badge { flex: 0 0 auto; min-width: 56px; min-height: 36px; border-radius: 8px; display: grid; place-items: center; background: #ffedcf; color: #c77720; font-weight: 900; }
+    .detail-meta { display: flex; flex-wrap: wrap; gap: 10px; margin: 14px 0 18px; color: #4f4b46; font-size: 15px; }
+    .detail-note { color: #7a756f; line-height: 1.7; font-size: 16px; margin: 0 0 24px; }
+    .section { padding: 22px 0; border-top: 1px solid var(--line); }
+    .section h3 { margin: 0 0 16px; font-size: 22px; font-weight: 900; }
+    .dish-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+    .dish img { width: 100%; aspect-ratio: 1 / .78; border-radius: 8px; object-fit: cover; background: var(--soft); }
+    .dish strong { display: block; margin-top: 9px; font-size: 15px; line-height: 1.3; }
+    .dish span { display: block; margin-top: 4px; color: var(--muted); font-size: 13px; line-height: 1.35; }
+    .address-line { display: grid; grid-template-columns: 1fr 28px; gap: 10px; align-items: center; color: #494541; font-size: 15px; line-height: 1.55; }
+    .map { position: relative; overflow: hidden; height: 265px; margin-top: 14px; border-radius: 8px; border: 1px solid var(--line); background: #f1eee8; }
+    .map > img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .map-info { position: absolute; left: 12px; right: 12px; bottom: 12px; display: grid; grid-template-columns: 1fr auto; gap: 12px; align-items: center; padding: 12px; border-radius: 8px; background: rgba(255, 255, 255, .92); box-shadow: 0 10px 24px rgba(49, 38, 28, .12); }
+    .map-info strong { display: block; font-size: 15px; line-height: 1.25; }
+    .map-info span { display: block; margin-top: 4px; color: #7d7973; font-size: 12px; line-height: 1.35; }
+    .nav-btn { min-height: 38px; border-radius: 999px; padding: 0 14px; background: #f1eee9; color: #4e4943; font-weight: 800; white-space: nowrap; display: inline-flex; align-items: center; }
+    .detail-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding-top: 18px; }
+    .edit-btn, .delete-btn { height: 52px; border-radius: 8px; font-size: 17px; font-weight: 900; }
+    .edit-btn { border: 1px solid #d8d0c8; background: #fff; }
+    .delete-btn { color: #fff; background: var(--danger); }
+    .form-row { display: grid; grid-template-columns: 82px 1fr; gap: 14px; align-items: start; padding: 17px 0; border-bottom: 1px solid var(--line); }
+    .form-row label { padding-top: 10px; color: #302d29; font-size: 18px; font-weight: 900; }
+    .field { width: 100%; min-height: 44px; border: 0; outline: none; color: var(--text); background: transparent; font-size: 16px; }
+    textarea.field { min-height: 110px; padding-top: 10px; resize: vertical; line-height: 1.6; border: 1px solid var(--line); border-radius: 8px; padding-left: 12px; padding-right: 12px; background: #fff; }
+    .mini-map { overflow: hidden; margin-top: 8px; height: 146px; border-radius: 8px; border: 1px solid var(--line); background: #f1eee8; }
+    .mini-map img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .cancel-link { display: block; width: 100%; margin-top: 18px; color: var(--muted); font-size: 16px; text-align: center; }
+    .toast { position: fixed; left: 50%; bottom: 24px; z-index: 5; max-width: min(360px, calc(100vw - 32px)); transform: translateX(-50%) translateY(18px); opacity: 0; pointer-events: none; padding: 11px 14px; border-radius: 8px; color: #fff; background: rgba(30, 28, 26, .92); box-shadow: 0 12px 28px rgba(0,0,0,.18); transition: .2s ease; text-align: center; }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+    @media (max-width: 370px) {
+      .screen { padding-left: 16px; padding-right: 16px; }
+      .row { grid-template-columns: 28px 82px 1fr 18px; gap: 10px; }
+      .thumb { width: 82px; height: 82px; }
+      .title-block h1 { font-size: 34px; }
+      .detail-title h2 { font-size: 30px; }
+      .dish-grid { grid-template-columns: 1fr 1fr; }
+      .form-row { grid-template-columns: 72px 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="phone">
+    <section class="screen active" id="listScreen">
+      <header class="top">
+        <div class="title-block"><h1>美食收藏</h1><p>记录值得一吃的好味道</p></div>
+        <button class="add-btn" id="addBtn" type="button">+ 添加</button>
+      </header>
+      <div class="search"><input id="searchInput" type="search" placeholder="搜索餐厅名、菜品或地址"><button class="filter-btn" id="filterBtn" type="button">筛</button></div>
+      <div class="category-strip" id="categoryStrip"></div>
+      <div class="count" id="countText">共 0 家</div>
+      <div class="list" id="recordList"></div>
+    </section>
+    <section class="screen" id="detailScreen"></section>
+    <section class="screen" id="formScreen">
+      <header class="nav-head"><button class="back" type="button" data-action="back">‹</button><div class="nav-title" id="formTitle">添加收藏</div><span></span></header>
+      <form id="recordForm">
+        <input type="hidden" id="recordId">
+        <div class="form-row"><label for="nameInput">店名</label><input class="field" id="nameInput" required placeholder="请输入店名"></div>
+        <div class="form-row"><label for="addressInput">地址</label><div><input class="field" id="addressInput" required placeholder="请输入详细地址"><div class="mini-map"><img src="map-preview.jpg" alt="地图预览"></div></div></div>
+        <div class="form-row"><label for="mustEatInput">必吃</label><textarea class="field" id="mustEatInput" required placeholder="请输入必吃菜品，换行分隔"></textarea></div>
+        <div class="form-row"><label for="sourceInput">来源</label><input class="field" id="sourceInput" placeholder="例如：朋友推荐 / 小红书 / 大众点评"></div>
+        <div class="form-row"><label for="categoryInput">分类</label><input class="field" id="categoryInput" placeholder="例如：烧烤 / 面馆 / 火锅"></div>
+        <div class="form-row"><label for="avgPriceInput">人均</label><input class="field" id="avgPriceInput" inputmode="numeric" type="number" min="0" placeholder="例如：120 元"></div>
+        <div class="form-row"><label for="noteInput">备注</label><textarea class="field" id="noteInput" placeholder="可填写环境、营业时间、停车等信息"></textarea></div>
+        <button class="save-btn" type="submit">保存</button>
+        <button class="cancel-link" type="button" data-action="back">取消</button>
+      </form>
+    </section>
+  </div>
+  <div class="toast" id="toast"></div>
+  <script>
+    const STORAGE_KEY = "mssc.deploy.records.v2";
+    const SEEDED_KEY = "mssc.deploy.seeded.v2";
+    const listScreen = document.getElementById("listScreen");
+    const detailScreen = document.getElementById("detailScreen");
+    const formScreen = document.getElementById("formScreen");
+    const recordList = document.getElementById("recordList");
+    const searchInput = document.getElementById("searchInput");
+    const categoryStrip = document.getElementById("categoryStrip");
+    const countText = document.getElementById("countText");
+    const toast = document.getElementById("toast");
+    const form = document.getElementById("recordForm");
+    const photos = ["food-roast.jpg", "food-noodles.jpg", "food-bbq.jpg"];
+    const seedRecords = [
+      { id: createId(), name: "松江夜油边", category: "本帮菜", avgPrice: 65, source: "朋友推荐", address: "上海市松江区中山中路 123 弄 6 号", mustEat: ["油边大肠", "红烧肉", "咸菜毛豆"], note: "朋友说油边酥香入味，夜宵首选。", photo: photos[0], createdAt: "2026-08-10T04:00:00.000Z", updatedAt: "2026-08-10T04:00:00.000Z" },
+      { id: createId(), name: "阿婆葱油拌面", category: "小吃快餐", avgPrice: 18, source: "网上刷到", address: "上海市静安区愚园路 68 弄 2 号", mustEat: ["葱油拌面", "辣肉酱", "蛋汤"], note: "刷到好几次，路过附近可以试。", photo: photos[1], createdAt: "2026-08-09T11:30:00.000Z", updatedAt: "2026-08-09T11:30:00.000Z" },
+      { id: createId(), name: "小林炭火烧肉", category: "日式烧肉", avgPrice: 128, source: "朋友推荐", address: "上海市长宁区天山西路 789 号", mustEat: ["和牛上肩", "厚切牛舌", "炭烤五花"], note: "适合周末晚上去，肉质看起来很稳。", photo: photos[2], createdAt: "2026-08-08T12:20:00.000Z", updatedAt: "2026-08-08T12:20:00.000Z" }
+    ];
+    let records = loadRecords();
+    let selectedId = records[0]?.id || "";
+    let activeCategory = "";
+    let previousScreen = "list";
+    function createId() { if (window.crypto?.randomUUID) return window.crypto.randomUUID(); return `mssc-${Date.now()}-${Math.random().toString(16).slice(2)}`; }
+    function loadRecords() { const raw = localStorage.getItem(STORAGE_KEY); if (raw) { try { const parsed = JSON.parse(raw); return Array.isArray(parsed) ? parsed : []; } catch { return []; } } if (!localStorage.getItem(SEEDED_KEY)) { localStorage.setItem(SEEDED_KEY, "1"); localStorage.setItem(STORAGE_KEY, JSON.stringify(seedRecords)); return seedRecords; } return []; }
+    function saveRecords() { localStorage.setItem(STORAGE_KEY, JSON.stringify(records)); }
+    function escapeHtml(value) { return String(value ?? "").replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;").replaceAll("'", "&#039;"); }
+    function showScreen(name) { listScreen.classList.toggle("active", name === "list"); detailScreen.classList.toggle("active", name === "detail"); formScreen.classList.toggle("active", name === "form"); window.scrollTo({ top: 0, behavior: "instant" }); }
+    function sortedRecords() { return [...records].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)); }
+    function filteredRecords() { const keyword = searchInput.value.trim().toLowerCase(); return sortedRecords().filter(record => { const text = [record.name, record.category, record.address, record.source, record.note, ...(record.mustEat || [])].join(" ").toLowerCase(); return (!keyword || text.includes(keyword)) && (!activeCategory || record.category === activeCategory); }); }
+    function renderCategories() { const categories = Array.from(new Set(records.map(item => item.category).filter(Boolean))); categoryStrip.innerHTML = [`<button class="pill ${activeCategory === "" ? "active" : ""}" data-category="">全部</button>`, ...categories.map(category => `<button class="pill ${activeCategory === category ? "active" : ""}" data-category="${escapeHtml(category)}">${escapeHtml(category)}</button>`)].join(""); categoryStrip.querySelectorAll(".pill").forEach(button => button.addEventListener("click", () => { activeCategory = button.dataset.category || ""; renderList(); })); }
+    function renderList() { renderCategories(); const items = filteredRecords(); countText.textContent = `共 ${items.length} 家`; if (!items.length) { recordList.innerHTML = `<div class="empty">还没有匹配的收藏。<br>点右上角添加第一家想吃的店。</div>`; return; } recordList.innerHTML = items.map((record, index) => { const mustEat = (record.mustEat || []).slice(0, 3).join("、"); return `<button class="row" type="button" data-id="${record.id}"><span class="num">${index + 1}</span><img class="thumb" src="${escapeHtml(record.photo || photos[index % photos.length])}" alt="${escapeHtml(record.name)}"><span class="row-main"><strong class="row-name">${escapeHtml(record.name)}</strong><span class="row-meta">${escapeHtml(record.category || "未分类")} · 人均 ¥${escapeHtml(record.avgPrice || "-")}</span><span class="row-must">必吃：${escapeHtml(mustEat || "待补充")}</span><span class="row-address">${escapeHtml(record.address)}</span></span><span class="chev">›</span></button>`; }).join(""); recordList.querySelectorAll(".row").forEach(row => row.addEventListener("click", () => openDetail(row.dataset.id))); }
+    function openDetail(id) { selectedId = id; renderDetail(); showScreen("detail"); }
+    function renderDetail() { const record = records.find(item => item.id === selectedId); if (!record) { showScreen("list"); renderList(); return; } const mapUrl = `https://ditu.amap.com/search?query=${encodeURIComponent(record.address)}`; const dishes = (record.mustEat || []).slice(0, 3); const dishImages = [record.photo || photos[0], ...photos].slice(0, 3); detailScreen.innerHTML = `<header class="nav-head"><button class="back" type="button" data-action="list">‹</button><span></span><span class="badge">#${Math.max(1, sortedRecords().findIndex(item => item.id === record.id) + 1)}</span></header><div class="detail-title"><h2>${escapeHtml(record.name)}</h2></div><div class="detail-meta"><span>${escapeHtml(record.category || "未分类")}</span><span>·</span><span>人均 ¥${escapeHtml(record.avgPrice || "-")}</span><span>·</span><span>来源：${escapeHtml(record.source || "未记录")}</span></div><p class="detail-note">${escapeHtml(record.note || "还没有备注。")}</p><section class="section"><h3>必吃推荐</h3><div class="dish-grid">${dishes.map((dish, index) => `<div class="dish"><img src="${escapeHtml(dishImages[index])}" alt="${escapeHtml(dish)}"><strong>${escapeHtml(dish)}</strong><span>${index === 0 ? "必点" : "值得试试"}</span></div>`).join("")}</div></section><section class="section"><h3>地址</h3><a class="address-line" href="${mapUrl}" target="_blank" rel="noopener"><span>${escapeHtml(record.address)}</span><span class="chev">›</span></a><div class="map"><img src="map-preview.jpg" alt="地图预览"><div class="map-info"><span><strong>${escapeHtml(record.name)}</strong><span>${escapeHtml(record.address)}</span></span><a class="nav-btn" href="${mapUrl}" target="_blank" rel="noopener">导航</a></div></div></section><section class="section"><h3>备注</h3><p class="detail-note">${escapeHtml(record.note || "还没有备注。")}</p></section><div class="detail-actions"><button class="edit-btn" type="button" data-action="edit">编辑</button><button class="delete-btn" type="button" data-action="delete">删除</button></div>`; detailScreen.querySelector('[data-action="list"]').addEventListener("click", () => showScreen("list")); detailScreen.querySelector('[data-action="edit"]').addEventListener("click", () => openForm(record.id)); detailScreen.querySelector('[data-action="delete"]').addEventListener("click", deleteRecord); }
+    function openForm(id = "") { const record = records.find(item => item.id === id); previousScreen = id ? "detail" : "list"; document.getElementById("formTitle").textContent = id ? "编辑收藏" : "添加收藏"; document.getElementById("recordId").value = record?.id || ""; document.getElementById("nameInput").value = record?.name || ""; document.getElementById("addressInput").value = record?.address || ""; document.getElementById("mustEatInput").value = (record?.mustEat || []).join("\n"); document.getElementById("sourceInput").value = record?.source || ""; document.getElementById("categoryInput").value = record?.category || ""; document.getElementById("avgPriceInput").value = record?.avgPrice || ""; document.getElementById("noteInput").value = record?.note || ""; showScreen("form"); setTimeout(() => document.getElementById("nameInput").focus(), 50); }
+    function closeForm() { if (previousScreen === "detail" && selectedId) { renderDetail(); showScreen("detail"); } else { renderList(); showScreen("list"); } }
+    function readForm() { const id = document.getElementById("recordId").value; const existing = records.find(item => item.id === id); const now = new Date().toISOString(); const mustEat = document.getElementById("mustEatInput").value.split(/\n+/).map(item => item.trim()).filter(Boolean); return { id: id || createId(), name: document.getElementById("nameInput").value.trim(), address: document.getElementById("addressInput").value.trim(), mustEat, source: document.getElementById("sourceInput").value.trim(), category: document.getElementById("categoryInput").value.trim(), avgPrice: Number(document.getElementById("avgPriceInput").value) || "", note: document.getElementById("noteInput").value.trim(), photo: existing?.photo || photos[records.length % photos.length], createdAt: existing?.createdAt || now, updatedAt: now }; }
+    function deleteRecord() { const record = records.find(item => item.id === selectedId); if (!record || !confirm(`确定删除「${record.name}」吗？`)) return; records = records.filter(item => item.id !== selectedId); selectedId = records[0]?.id || ""; saveRecords(); renderList(); showScreen("list"); showToast("已删除"); }
+    function showToast(message) { toast.textContent = message; toast.classList.add("show"); clearTimeout(showToast.timer); showToast.timer = setTimeout(() => toast.classList.remove("show"), 1600); }
+    document.getElementById("addBtn").addEventListener("click", () => openForm());
+    document.getElementById("filterBtn").addEventListener("click", () => categoryStrip.classList.toggle("show"));
+    searchInput.addEventListener("input", renderList);
+    document.querySelectorAll('[data-action="back"]').forEach(button => button.addEventListener("click", closeForm));
+    form.addEventListener("submit", event => { event.preventDefault(); const nextRecord = readForm(); if (!nextRecord.name || !nextRecord.address || !nextRecord.mustEat.length) { showToast("请补全店名、地址和必吃菜"); return; } const index = records.findIndex(item => item.id === nextRecord.id); if (index >= 0) records[index] = nextRecord; else records.unshift(nextRecord); selectedId = nextRecord.id; saveRecords(); renderList(); renderDetail(); showScreen("detail"); showToast("已保存"); });
+    renderList();
+  </script>
+</body>
+</html>
