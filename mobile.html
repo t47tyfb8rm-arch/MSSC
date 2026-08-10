@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="apple-mobile-web-app-title" content="美食收藏">
   <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="theme-color" content="#df6d23">
   <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
   <link rel="icon" type="image/png" href="apple-touch-icon.png">
@@ -264,6 +264,43 @@
     #formScreen .save-btn { height: 50px; min-height: 50px; font-size: 16px; }
     #formScreen .cancel-link { margin-top: 12px; font-size: 14px; }
     #formScreen .fixed-actions { margin-top: 12px; padding-top: 10px; }
+    /* v8 seamless chrome and swipe animation */
+    html, body { background: #F7F7F9; }
+    .phone {
+      background:
+        linear-gradient(180deg, #F7F7F9 0, #F7F7F9 168px, #F7F7F9 100%);
+      box-shadow: none;
+    }
+    .top, .nav-head {
+      margin-bottom: 10px;
+      background: linear-gradient(180deg, rgba(247,247,249,1) 0%, rgba(247,247,249,.96) 78%, rgba(247,247,249,.88) 100%);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+    }
+    .top::after, .nav-head::after {
+      left: 0;
+      right: 0;
+      bottom: -16px;
+      height: 16px;
+      background: linear-gradient(180deg, rgba(247,247,249,.92), rgba(247,247,249,0));
+      pointer-events: none;
+    }
+    .row {
+      box-shadow: 0 8px 22px rgba(30, 30, 34, .07), 0 1px 0 rgba(255,255,255,.92) inset;
+    }
+    #detailScreen.active {
+      transform: translateX(0);
+      opacity: 1;
+      transition: transform .24s cubic-bezier(.22, 1, .36, 1), opacity .24s ease;
+      will-change: transform, opacity;
+    }
+    #detailScreen.swiping {
+      transition: none;
+    }
+    #detailScreen.swipe-leave {
+      transform: translateX(100%);
+      opacity: .28;
+    }
     @media (max-width: 370px) {
       .row { grid-template-columns: 96px 1fr; gap: 10px; }
       .row-cover { width: 96px; height: 104px; }
@@ -456,8 +493,57 @@
     document.querySelectorAll('[data-action="back"]').forEach(button => button.addEventListener("click", closeForm));
     let detailSwipeStartX = 0;
     let detailSwipeStartY = 0;
-    detailScreen.addEventListener("touchstart", event => { const touch = event.touches?.[0]; if (!touch) return; detailSwipeStartX = touch.clientX; detailSwipeStartY = touch.clientY; }, { passive: true });
-    detailScreen.addEventListener("touchend", event => { const touch = event.changedTouches?.[0]; if (!touch || !detailScreen.classList.contains("active")) return; const dx = touch.clientX - detailSwipeStartX; const dy = Math.abs(touch.clientY - detailSwipeStartY); if (detailSwipeStartX < 32 && dx > 72 && dy < 45) { renderList(); showScreen("list"); } }, { passive: true });
+    let detailSwipeActive = false;
+    function resetDetailSwipe() {
+      detailSwipeActive = false;
+      detailScreen.classList.remove("swiping", "swipe-leave");
+      detailScreen.style.transform = "";
+      detailScreen.style.opacity = "";
+    }
+    detailScreen.addEventListener("touchstart", event => {
+      const touch = event.touches?.[0];
+      if (!touch || !detailScreen.classList.contains("active")) return;
+      detailSwipeStartX = touch.clientX;
+      detailSwipeStartY = touch.clientY;
+      detailSwipeActive = detailSwipeStartX < 38;
+      if (detailSwipeActive) detailScreen.classList.add("swiping");
+    }, { passive: true });
+    detailScreen.addEventListener("touchmove", event => {
+      if (!detailSwipeActive) return;
+      const touch = event.touches?.[0];
+      if (!touch) return;
+      const dx = Math.max(0, touch.clientX - detailSwipeStartX);
+      const dy = Math.abs(touch.clientY - detailSwipeStartY);
+      if (dy > 58 && dx < 42) {
+        resetDetailSwipe();
+        return;
+      }
+      const offset = Math.min(dx, 190);
+      detailScreen.style.transform = `translateX(${offset}px)`;
+      detailScreen.style.opacity = String(Math.max(.74, 1 - dx / 420));
+    }, { passive: true });
+    detailScreen.addEventListener("touchend", event => {
+      if (!detailSwipeActive) return;
+      const touch = event.changedTouches?.[0];
+      const dx = touch ? touch.clientX - detailSwipeStartX : 0;
+      const dy = touch ? Math.abs(touch.clientY - detailSwipeStartY) : 0;
+      detailScreen.classList.remove("swiping");
+      if (dx > 88 && dy < 62) {
+        detailScreen.classList.add("swipe-leave");
+        detailScreen.style.transform = "translateX(100%)";
+        detailScreen.style.opacity = ".28";
+        window.setTimeout(() => {
+          resetDetailSwipe();
+          renderList();
+          showScreen("list");
+        }, 180);
+        return;
+      }
+      detailScreen.style.transform = "translateX(0)";
+      detailScreen.style.opacity = "1";
+      window.setTimeout(resetDetailSwipe, 230);
+    }, { passive: true });
+    detailScreen.addEventListener("touchcancel", resetDetailSwipe, { passive: true });
     resetBtn.addEventListener("click", () => openForm(document.getElementById("recordId").value));
     form.addEventListener("submit", event => { event.preventDefault(); const nextRecord = readForm(); if (!nextRecord.name) { showToast("请输入店铺名称"); return; } if (!nextRecord.address) { showToast("请输入详细地址"); return; } saveBtn.disabled = true; saveBtn.textContent = "正在保存…"; try { const index = records.findIndex(item => item.id === nextRecord.id); if (index >= 0) records[index] = nextRecord; else records.unshift(nextRecord); selectedId = nextRecord.id; saveRecords(); renderList(); renderDetail(); showScreen("detail"); showToast("已保存收藏"); } finally { saveBtn.disabled = false; saveBtn.textContent = "保存收藏"; } });
     renderList();
