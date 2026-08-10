@@ -301,6 +301,96 @@
       transform: translateX(100%);
       opacity: .28;
     }
+    /* v9 compact POI picker and safer selection */
+    #poiSheet .sheet-panel {
+      max-height: min(68vh, 620px);
+      padding: 10px 12px calc(14px + env(safe-area-inset-bottom));
+      border-radius: 18px 18px 0 0;
+      background: #F7F7F9;
+    }
+    #poiSheet .sheet-head {
+      margin: -10px -12px 8px;
+      padding: 10px 12px;
+      border-bottom: 0;
+      background: rgba(247,247,249,.96);
+    }
+    #poiSheet .sheet-title { font-size: 16px; }
+    #poiSheet .sheet-close {
+      width: 34px;
+      height: 34px;
+      font-size: 24px;
+      background: #EFEFF2;
+    }
+    #poiSheet .poi-results {
+      display: grid;
+      gap: 8px;
+      overflow: visible;
+      background: transparent;
+      box-shadow: none;
+      border-radius: 0;
+    }
+    #poiSheet .poi-guide {
+      padding: 8px 10px;
+      border: 0;
+      border-radius: 12px;
+      color: #9A520F;
+      background: #FFF4EA;
+      font-size: 12px;
+      line-height: 1.45;
+      font-weight: 800;
+    }
+    #poiSheet .poi-item {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 10px;
+      align-items: center;
+      width: 100%;
+      padding: 10px;
+      border: 0;
+      border-radius: 14px;
+      background: #fff;
+      box-shadow: 0 2px 10px rgba(0,0,0,.06);
+      text-align: left;
+      cursor: default;
+    }
+    #poiSheet .poi-main { min-width: 0; }
+    #poiSheet .poi-item strong {
+      display: -webkit-box;
+      overflow: hidden;
+      color: #202124;
+      font-size: 14px;
+      line-height: 1.35;
+      font-weight: 900;
+      -webkit-box-orient: vertical;
+      -webkit-line-clamp: 2;
+    }
+    #poiSheet .poi-item span {
+      display: block;
+      margin-top: 4px;
+      overflow: hidden;
+      color: #737378;
+      font-size: 11px;
+      line-height: 1.4;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    #poiSheet .poi-item .source-note { color: #A0A0A6; font-size: 10px; }
+    #poiSheet .poi-select {
+      width: 52px;
+      height: 34px;
+      margin-top: 0;
+      padding: 0;
+      border-radius: 999px;
+      display: inline-grid;
+      place-items: center;
+      color: #fff;
+      background: linear-gradient(145deg, #FF8A1F, #F2761D);
+      font-size: 12px;
+      font-style: normal;
+      font-weight: 900;
+      box-shadow: 0 5px 12px rgba(242,118,29,.22);
+      cursor: pointer;
+    }
     @media (max-width: 370px) {
       .row { grid-template-columns: 96px 1fr; gap: 10px; }
       .row-cover { width: 96px; height: 104px; }
@@ -469,7 +559,7 @@
     function aiRecommendDishes() { const base = ["招牌烤肉", "店长推荐菜", "人气小食"]; const added = base.filter(name => !formDishes.some(item => item.name === name)).map(name => ({ name, photo: "", ai: true })); formDishes = [...formDishes, ...added].slice(0, 8); renderDishEditor(); showToast(`已添加${added.length}道推荐菜品`); }
     function compressImage(file) { return new Promise((resolve, reject) => { const reader = new FileReader(); reader.onerror = reject; reader.onload = () => { const image = new Image(); image.onerror = reject; image.onload = () => { const canvas = document.createElement("canvas"); const maxSide = 720; const scale = Math.min(1, maxSide / Math.max(image.width, image.height)); canvas.width = Math.max(1, Math.round(image.width * scale)); canvas.height = Math.max(1, Math.round(image.height * scale)); canvas.getContext("2d").drawImage(image, 0, 0, canvas.width, canvas.height); resolve(canvas.toDataURL("image/jpeg", .78)); }; image.src = reader.result; }; reader.readAsDataURL(file); }); }
     function getPoiDishes(poi) { return cleanAmapValue(poi.tag || poi.atag).split(/[,，;；、]/).map(item => item.trim()).filter(item => item && !/单人餐|双人餐|套餐|团购|外卖/.test(item)).slice(0, 5); }
-    function renderPoiResults(items) { poiCandidates = items; openPoiSheet(); if (!items.length) { poiResults.innerHTML = `<div class="poi-empty">未找到匹配门店，可手动新增店铺。<br><button type="button" data-action="manual-poi">继续手动录入</button></div>`; poiResults.querySelector('[data-action="manual-poi"]').addEventListener("click", closePoiSheet); return; } poiResults.innerHTML = `<div class="poi-guide">选择对应门店，系统将自动回填地址、位置、门店图片信息</div>${items.map((poi, index) => { const dishes = getPoiDishes(poi).slice(0, 3).join("、"); return `<button class="poi-item" type="button" data-index="${index}"><strong>${escapeHtml(poi.name)}</strong><span>${escapeHtml(getPoiCategory(poi))} · ${escapeHtml(getPoiAddress(poi) || "暂无地址")}</span><span class="source-note">数据来自高德地图</span>${dishes ? `<span>推荐：${escapeHtml(dishes)}</span>` : ""}<em class="poi-select">选择这家</em></button>`; }).join("")}`; poiResults.querySelectorAll(".poi-item").forEach(button => { const select = event => { event.preventDefault(); applyPoi(Number(button.dataset.index)); }; button.addEventListener("pointerdown", select); button.addEventListener("click", select); }); }
+    function renderPoiResults(items) { poiCandidates = items; openPoiSheet(); if (!items.length) { poiResults.innerHTML = `<div class="poi-empty">未找到匹配门店，可手动新增店铺。<br><button type="button" data-action="manual-poi">继续手动录入</button></div>`; poiResults.querySelector('[data-action="manual-poi"]').addEventListener("click", closePoiSheet); return; } poiResults.innerHTML = `<div class="poi-guide">请确认门店后点击右侧“选择”，滑动列表不会自动填入。</div>${items.map((poi, index) => { const dishes = getPoiDishes(poi).slice(0, 2).join("、"); return `<div class="poi-item" data-index="${index}"><div class="poi-main"><strong>${escapeHtml(poi.name)}</strong><span>${escapeHtml(getPoiCategory(poi))} · ${escapeHtml(getPoiAddress(poi) || "暂无地址")}</span>${dishes ? `<span>推荐：${escapeHtml(dishes)}</span>` : ""}<span class="source-note">数据来自高德地图</span></div><button class="poi-select" type="button" data-action="select-poi" data-index="${index}">选择</button></div>`; }).join("")}`; poiResults.querySelectorAll('[data-action="select-poi"]').forEach(button => button.addEventListener("click", event => { event.stopPropagation(); applyPoi(Number(button.dataset.index)); })); }
     async function searchPoi() { const keyword = nameInput.value.trim(); if (!keyword) { showToast("请输入店铺名称"); return; } poiSearchBtn.disabled = true; poiSearchBtn.textContent = "检索中"; showToast("正在检索高德商户库"); try { const data = await jsonp("https://restapi.amap.com/v3/place/text", { key: AMAP_KEY, keywords: keyword, types: "050000", city: AMAP_CITY, citylimit: "false", offset: "10", page: "1", extensions: "all", output: "JSON" }); if (data.status !== "1") throw new Error(data.info || "高德接口返回异常"); renderPoiResults(Array.isArray(data.pois) ? data.pois : []); } catch (error) { clearPoiResults(); showToast("门店信息获取失败，请稍后重试或手动填写信息"); } finally { poiSearchBtn.disabled = false; poiSearchBtn.textContent = "搜店"; } }
     function applyPoi(index) { const poi = poiCandidates[index]; if (!poi) return; const address = getPoiAddress(poi); const category = getPoiCategory(poi); const avgPrice = getPoiCost(poi); const location = cleanAmapValue(poi.location); const rating = cleanAmapValue(poi.biz_ext?.rating); const tel = cleanAmapValue(poi.tel); const opentime = cleanAmapValue(poi.biz_ext?.opentime_today || poi.biz_ext?.opentime2 || poi.biz_ext?.open_time || poi.biz_ext?.opentime); const noteLines = [rating ? `高德评分：${rating}` : "", tel ? `电话：${tel}` : "", opentime ? `营业时间：${opentime}` : ""].filter(Boolean); document.getElementById("nameInput").value = cleanAmapValue(poi.name); document.getElementById("locationInput").value = location; if (address) document.getElementById("addressInput").value = address; if (category) document.getElementById("categoryInput").value = category; if (avgPrice) document.getElementById("avgPriceInput").value = avgPrice; if (!document.getElementById("sourceInput").value.trim()) document.getElementById("sourceInput").value = "高德地图"; const dishes = getPoiDishes(poi); if (!formDishes.some(item => item.name.trim()) && dishes.length) { formDishes = dishes.map(name => ({ name, photo: "" })); renderDishEditor(); } const noteInput = document.getElementById("noteInput"); const manualNote = stripAutoNote(noteInput.value).trim(); noteInput.value = [manualNote, ...noteLines].filter(Boolean).join("\n"); updateFormMap(location); closePoiSheet(); showToast(dishes.length ? "已填入店铺信息和推荐必吃" : "已填入店铺信息"); }
     async function geocodeAddress() { const address = addressInput.value.trim(); if (!address) { document.getElementById("locationInput").value = ""; updateFormMap(""); return; } try { const data = await jsonp("https://restapi.amap.com/v3/geocode/geo", { key: AMAP_KEY, address, city: AMAP_CITY, output: "JSON" }); const location = cleanAmapValue(data.geocodes?.[0]?.location); if (data.status === "1" && location) { document.getElementById("locationInput").value = location; updateFormMap(location); } } catch { /* Manual address can still be saved when geocoding fails. */ } }
