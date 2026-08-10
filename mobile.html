@@ -391,6 +391,34 @@
       box-shadow: 0 5px 12px rgba(242,118,29,.22);
       cursor: pointer;
     }
+    /* v10 solid search and non-blank swipe back */
+    .search {
+      background: #FFFFFF;
+      border: 1px solid rgba(228, 228, 232, .9);
+      box-shadow: 0 8px 22px rgba(32, 32, 36, .08), inset 0 1px 0 rgba(255,255,255,1);
+    }
+    .search input::placeholder { color: #A3A3AA; opacity: 1; }
+    .screen.swipe-underlay {
+      display: block;
+      position: fixed;
+      inset: 0;
+      left: 50%;
+      z-index: 1;
+      width: min(100%, 430px);
+      padding-left: 16px;
+      padding-right: 16px;
+      overflow: hidden;
+      transform: translateX(-50%);
+      pointer-events: none;
+      background: #F7F7F9;
+    }
+    #detailScreen.active {
+      position: relative;
+      z-index: 2;
+      min-height: 100vh;
+      background: #F7F7F9;
+      box-shadow: -16px 0 34px rgba(0,0,0,.08);
+    }
     @media (max-width: 370px) {
       .row { grid-template-columns: 96px 1fr; gap: 10px; }
       .row-cover { width: 96px; height: 104px; }
@@ -584,9 +612,14 @@
     let detailSwipeStartX = 0;
     let detailSwipeStartY = 0;
     let detailSwipeActive = false;
+    function prepareSwipeUnderlay() {
+      renderList();
+      listScreen.classList.add("swipe-underlay");
+    }
     function resetDetailSwipe() {
       detailSwipeActive = false;
       detailScreen.classList.remove("swiping", "swipe-leave");
+      listScreen.classList.remove("swipe-underlay");
       detailScreen.style.transform = "";
       detailScreen.style.opacity = "";
     }
@@ -596,7 +629,10 @@
       detailSwipeStartX = touch.clientX;
       detailSwipeStartY = touch.clientY;
       detailSwipeActive = detailSwipeStartX < 38;
-      if (detailSwipeActive) detailScreen.classList.add("swiping");
+      if (detailSwipeActive) {
+        prepareSwipeUnderlay();
+        detailScreen.classList.add("swiping");
+      }
     }, { passive: true });
     detailScreen.addEventListener("touchmove", event => {
       if (!detailSwipeActive) return;
@@ -623,9 +659,9 @@
         detailScreen.style.transform = "translateX(100%)";
         detailScreen.style.opacity = ".28";
         window.setTimeout(() => {
-          resetDetailSwipe();
           renderList();
           showScreen("list");
+          resetDetailSwipe();
         }, 180);
         return;
       }
