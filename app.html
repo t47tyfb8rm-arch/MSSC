@@ -1,0 +1,728 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-title" content="美食收藏">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="theme-color" content="#df6d23">
+  <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+  <link rel="icon" type="image/png" href="apple-touch-icon.png">
+  <title>美食收藏</title>
+  <style>
+    :root {
+      --bg: #fbfaf8;
+      --text: #272321;
+      --muted: #8d8a86;
+      --soft: #f4f1ee;
+      --line: #ebe7e2;
+      --accent: #df6d23;
+      --accent-2: #f0831f;
+      --danger: #e54b3d;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    }
+    * { box-sizing: border-box; }
+    html { min-height: 100%; background: #ece9e4; scrollbar-width: none; }
+    body { margin: 0; min-height: 100vh; color: var(--text); background: #ece9e4; letter-spacing: 0; scrollbar-width: none; }
+    html::-webkit-scrollbar, body::-webkit-scrollbar, .phone::-webkit-scrollbar { display: none; }
+    button, input, textarea { font: inherit; }
+    button { border: 0; cursor: pointer; background: none; color: inherit; }
+    a { color: inherit; text-decoration: none; }
+    .phone { width: min(100%, 430px); min-height: 100vh; margin: 0 auto; background: var(--bg); box-shadow: 0 0 42px rgba(37, 32, 28, .10); overflow: hidden; }
+    .screen { min-height: 100vh; padding: 0 22px 28px; display: none; }
+    .screen.active { display: block; }
+    .top { position: sticky; top: 0; z-index: 3; margin: 0 -22px 12px; padding: calc(12px + env(safe-area-inset-top)) 22px 12px; background: rgba(251, 250, 248, .96); backdrop-filter: blur(18px); border-bottom: 1px solid rgba(235, 231, 226, .84); }
+    .app-nav { display: flex; align-items: center; justify-content: space-between; gap: 14px; }
+    .title-block h1 { margin: 0; font-size: 22px; line-height: 1.1; font-weight: 900; }
+    .title-block p { margin: 4px 0 0; color: var(--muted); font-size: 12px; }
+    .add-btn, .save-btn { min-height: 46px; border-radius: 8px; padding: 0 18px; color: #fff; background: linear-gradient(135deg, var(--accent), var(--accent-2)); font-weight: 800; box-shadow: 0 12px 26px rgba(223, 109, 35, .22); white-space: nowrap; }
+    .add-btn { width: 44px; height: 44px; min-height: 44px; border-radius: 50%; padding: 0; display: grid; place-items: center; font-size: 25px; line-height: 1; }
+    .save-btn { width: 100%; height: 58px; font-size: 20px; }
+    .search { position: sticky; top: 76px; z-index: 2; height: 52px; border: 1px solid var(--line); border-radius: 8px; background: #fff; display: grid; grid-template-columns: 1fr; align-items: center; gap: 8px; padding: 0 14px; box-shadow: 0 7px 18px rgba(60, 45, 32, .04); }
+    .search input { width: 100%; border: 0; outline: none; color: var(--text); background: transparent; font-size: 14px; }
+    .filter-btn { display: none; }
+    .category-strip { display: flex; gap: 8px; overflow-x: auto; padding: 12px 0 6px; scrollbar-width: none; }
+    .category-strip::-webkit-scrollbar { display: none; }
+    .pill { flex: 0 0 auto; min-height: 30px; padding: 0 11px; border-radius: 999px; border: 1px solid var(--line); color: #706b65; background: #fff; font-size: 12px; }
+    .pill.active { border-color: rgba(223, 109, 35, .32); color: var(--accent); background: #fff3ea; font-weight: 800; }
+    .stats { display: flex; align-items: center; gap: 8px; margin: 11px 0 8px; color: var(--muted); font-size: 12px; white-space: nowrap; overflow-x: auto; scrollbar-width: none; }
+    .stats::-webkit-scrollbar { display: none; }
+    .stat { display: inline-flex; align-items: center; gap: 3px; flex: 0 0 auto; }
+    .stat:not(:last-child)::after { content: ""; width: 3px; height: 3px; margin-left: 8px; border-radius: 50%; background: #d8d1ca; }
+    .stat strong { color: var(--accent); font-size: 13px; line-height: 1; font-weight: 900; }
+    .stat span { color: var(--muted); font-size: 12px; line-height: 1; }
+    .count { margin: 13px 0 10px; color: #332f2a; font-size: 15px; font-weight: 900; }
+    .list { display: grid; min-width: 0; overflow: hidden; }
+    .row { display: block; width: 100%; min-width: 0; overflow: hidden; text-align: left; padding: 14px 13px; margin-bottom: 11px; border: 1px solid var(--line); border-radius: 8px; background: #fff; box-shadow: 0 8px 20px rgba(50, 39, 28, .045); }
+    .row-top { display: flex; align-items: flex-start; gap: 10px; min-width: 0; }
+    .num { flex: 0 0 auto; min-width: 34px; height: 27px; border-radius: 999px; display: inline-grid; place-items: center; color: var(--accent); background: #fff3ea; font-size: 13px; font-weight: 900; }
+    .thumb { width: 76px; height: 76px; border-radius: 8px; object-fit: cover; background: var(--soft); }
+    .thumb-placeholder { width: 76px; height: 76px; border-radius: 8px; display: grid; place-items: center; color: #b76d22; background: linear-gradient(135deg, #fff2dd, #f8dfbd); font-size: 28px; font-weight: 900; }
+    .row-main { min-width: 0; flex: 1; }
+    .row-name { display: -webkit-box; font-size: 17px; line-height: 1.28; font-weight: 900; overflow: hidden; overflow-wrap: anywhere; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
+    .row-meta, .row-address { display: block; color: #7d7973; font-size: 13px; line-height: 1.45; overflow: hidden; text-overflow: ellipsis; }
+    .row-address { display: -webkit-box; overflow-wrap: anywhere; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
+    .row-meta { margin-top: 7px; }
+    .row-must { display: -webkit-box; margin-top: 10px; padding: 9px 11px; border-radius: 8px; color: var(--accent); background: #fff7ef; font-size: 13px; line-height: 1.45; overflow: hidden; overflow-wrap: anywhere; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
+    .row-address { margin-top: 7px; }
+    .row-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; margin-top: 12px; }
+    .row-action { min-width: 0; height: 36px; border-radius: 8px; display: grid; place-items: center; background: #f6f3ef; color: #4d4741; font-size: 13px; font-weight: 900; }
+    .row-action.primary { color: #fff; background: var(--accent); }
+    .chev { display: none; }
+    .empty { margin-top: 54px; color: var(--muted); text-align: center; line-height: 1.7; }
+    .nav-head { position: sticky; top: 0; z-index: 3; margin: 0 -22px 24px; padding: calc(12px + env(safe-area-inset-top)) 22px 12px; background: rgba(251, 250, 248, .96); backdrop-filter: blur(18px); border-bottom: 1px solid rgba(235, 231, 226, .84); }
+    .nav-row { display: grid; grid-template-columns: 54px 1fr 54px; align-items: center; }
+    .back { width: 42px; height: 42px; border-radius: 8px; font-size: 32px; line-height: 1; color: #3f3b37; }
+    .nav-title { text-align: center; font-size: 20px; font-weight: 900; }
+    .detail-title { display: flex; align-items: flex-start; justify-content: space-between; gap: 14px; }
+    .detail-title h2 { margin: 0; font-size: 34px; line-height: 1.16; font-weight: 900; }
+    .badge { flex: 0 0 auto; min-width: 56px; min-height: 36px; border-radius: 8px; display: grid; place-items: center; background: #ffedcf; color: #c77720; font-weight: 900; }
+    .detail-meta { display: flex; flex-wrap: wrap; gap: 10px; margin: 14px 0 18px; color: #4f4b46; font-size: 15px; }
+    .detail-note { color: #7a756f; line-height: 1.7; font-size: 16px; margin: 0 0 24px; }
+    .info-list { display: grid; gap: 8px; margin: 0 0 24px; }
+    .info-line { display: grid; grid-template-columns: 74px 1fr; gap: 10px; align-items: start; padding: 10px 12px; border: 1px solid var(--line); border-radius: 8px; background: #fff; color: #625d57; font-size: 14px; line-height: 1.45; }
+    .info-line strong { color: #302d29; font-size: 14px; }
+    .section { padding: 22px 0; border-top: 1px solid var(--line); }
+    .section h3 { margin: 0 0 16px; font-size: 22px; font-weight: 900; }
+    .dish-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+    .dish-tags { display: flex; flex-wrap: wrap; gap: 10px; }
+    .dish-tag { max-width: 100%; padding: 10px 12px; border-radius: 8px; color: #8f4f13; background: #fff3df; font-size: 15px; line-height: 1.35; font-weight: 900; }
+    .dish img { width: 100%; aspect-ratio: 1 / .78; border-radius: 8px; object-fit: cover; background: var(--soft); }
+    .dish strong { display: block; margin-top: 9px; font-size: 15px; line-height: 1.3; }
+    .dish span { display: block; margin-top: 4px; color: var(--muted); font-size: 13px; line-height: 1.35; }
+    .address-line { display: grid; grid-template-columns: 1fr 28px; gap: 10px; align-items: center; color: #494541; font-size: 15px; line-height: 1.55; }
+    .map { position: relative; overflow: hidden; height: 265px; margin-top: 14px; border-radius: 8px; border: 1px solid var(--line); background: #f1eee8; }
+    .map > img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .map-info { position: absolute; left: 12px; right: 12px; bottom: 12px; display: grid; grid-template-columns: 1fr auto; gap: 12px; align-items: center; padding: 12px; border-radius: 8px; background: rgba(255, 255, 255, .92); box-shadow: 0 10px 24px rgba(49, 38, 28, .12); }
+    .map-info strong { display: block; font-size: 15px; line-height: 1.25; }
+    .map-info span { display: block; margin-top: 4px; color: #7d7973; font-size: 12px; line-height: 1.35; }
+    .nav-btn { min-height: 38px; border-radius: 999px; padding: 0 14px; background: #f1eee9; color: #4e4943; font-weight: 800; white-space: nowrap; display: inline-flex; align-items: center; }
+    .detail-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding-top: 18px; }
+    .edit-btn, .delete-btn { height: 52px; border-radius: 8px; font-size: 17px; font-weight: 900; }
+    .edit-btn { border: 1px solid #d8d0c8; background: #fff; }
+    .delete-btn { color: #fff; background: var(--danger); }
+    .form-row { display: grid; grid-template-columns: 82px 1fr; gap: 14px; align-items: start; padding: 17px 0; border-bottom: 1px solid var(--line); }
+    .form-row label { padding-top: 10px; color: #302d29; font-size: 18px; font-weight: 900; }
+    .field { width: 100%; min-height: 44px; border: 0; outline: none; color: var(--text); background: transparent; font-size: 16px; }
+    .lookup-line { display: grid; grid-template-columns: 1fr 72px; gap: 10px; align-items: center; }
+    .lookup-btn { height: 42px; border-radius: 8px; color: #fff; background: var(--accent); font-size: 15px; font-weight: 900; white-space: nowrap; }
+    .lookup-btn:disabled { opacity: .58; cursor: wait; }
+    .poi-results { border: 1px solid var(--line); border-radius: 8px; background: #fff; overflow: hidden; }
+    .poi-guide { padding: 10px 12px; border-bottom: 1px solid var(--line); color: var(--accent); background: #fff7ef; font-size: 13px; line-height: 1.45; font-weight: 800; }
+    .poi-item { width: 100%; padding: 12px; border-bottom: 1px solid var(--line); text-align: left; background: #fff; }
+    .poi-item:last-child { border-bottom: 0; }
+    .poi-item strong { display: block; font-size: 15px; line-height: 1.35; }
+    .poi-item span { display: block; margin-top: 5px; color: var(--muted); font-size: 13px; line-height: 1.45; }
+    .source-note, .poi-item .source-note { display: block; margin-top: 5px; color: #9b948c; font-size: 12px; line-height: 1.35; }
+    .poi-select { display: inline-flex; margin-top: 8px; padding: 5px 9px; border-radius: 999px; color: #fff; background: var(--accent); font-size: 12px; font-weight: 900; }
+    .poi-empty { padding: 12px; color: var(--muted); font-size: 13px; line-height: 1.5; }
+    .poi-empty button { margin-top: 10px; color: var(--accent); font-weight: 900; }
+    textarea.field { min-height: 110px; padding-top: 10px; resize: vertical; line-height: 1.6; border: 1px solid var(--line); border-radius: 8px; padding-left: 12px; padding-right: 12px; background: #fff; }
+    .dish-editor { display: grid; gap: 10px; }
+    .dish-card { display: grid; grid-template-columns: 68px 1fr auto; gap: 10px; align-items: center; padding: 10px; border: 1px solid var(--line); border-radius: 8px; background: #fff; }
+    .dish-photo { width: 68px; height: 58px; border-radius: 8px; display: grid; place-items: center; color: #b76d22; background: linear-gradient(135deg, #fff2dd, #f8dfbd); font-size: 22px; font-weight: 900; overflow: hidden; }
+    .dish .dish-photo { width: 100%; height: auto; aspect-ratio: 1 / .78; }
+    .dish-photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .dish-name-input { width: 100%; min-height: 38px; border: 0; outline: none; color: var(--text); background: transparent; font-size: 16px; font-weight: 800; }
+    .dish-actions { display: grid; gap: 7px; }
+    .tiny-btn { min-width: 46px; height: 30px; border-radius: 8px; background: #f4f1ee; color: #5b554f; font-size: 12px; font-weight: 900; }
+    .tiny-btn.danger { color: #fff; background: var(--danger); }
+    .add-dish-btn { width: 100%; height: 42px; border-radius: 8px; color: var(--accent); background: #fff3ea; font-size: 15px; font-weight: 900; }
+    .mini-map { overflow: hidden; margin-top: 8px; height: 146px; border-radius: 8px; border: 1px solid var(--line); background: #f1eee8; }
+    .mini-map img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .fixed-actions { position: sticky; bottom: 0; z-index: 2; margin: 18px -22px 0; padding: 12px 22px calc(14px + env(safe-area-inset-bottom)); background: rgba(251, 250, 248, .94); backdrop-filter: blur(18px); border-top: 1px solid rgba(235, 231, 226, .86); }
+    .cancel-link { display: block; width: 100%; margin-top: 18px; color: var(--muted); font-size: 16px; text-align: center; }
+    .sheet { position: fixed; inset: 0; z-index: 8; display: none; align-items: end; justify-content: center; background: rgba(23, 20, 18, .28); }
+    .sheet.show { display: flex; }
+    .sheet-panel { width: min(430px, 100%); max-height: 72vh; padding: 12px 16px calc(16px + env(safe-area-inset-bottom)); border-radius: 8px 8px 0 0; background: var(--bg); box-shadow: 0 -18px 40px rgba(30, 24, 18, .18); overflow: auto; }
+    .sheet-head { position: sticky; top: -12px; z-index: 1; display: grid; grid-template-columns: 44px 1fr 44px; align-items: center; margin: -12px -16px 12px; padding: 12px 16px; background: rgba(251, 250, 248, .96); border-bottom: 1px solid var(--line); }
+    .sheet-title { text-align: center; font-size: 18px; font-weight: 900; }
+    .sheet-close { width: 40px; height: 40px; border-radius: 8px; color: var(--muted); font-size: 26px; }
+    .toast { position: fixed; left: 50%; bottom: 24px; z-index: 5; max-width: min(360px, calc(100vw - 32px)); transform: translateX(-50%) translateY(18px); opacity: 0; pointer-events: none; padding: 11px 14px; border-radius: 8px; color: #fff; background: rgba(30, 28, 26, .92); box-shadow: 0 12px 28px rgba(0,0,0,.18); transition: .2s ease; text-align: center; }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+    .mode-tabs { display: flex; gap: 8px; overflow-x: auto; padding: 4px 0 4px; scrollbar-width: none; }
+    .mode-tabs::-webkit-scrollbar { display: none; }
+    .mode-tab { flex: 0 0 auto; min-height: 32px; padding: 0 12px; border: 1px solid var(--line); border-radius: 999px; background: #fff; color: #625c55; font-size: 12px; font-weight: 900; }
+    .mode-tab.active { border-color: rgba(223, 109, 35, .36); color: var(--accent); background: #fff3ea; }
+    .mode-hint { min-height: 16px; margin: 0 0 6px; color: #aaa29a; font-size: 11px; line-height: 1.4; }
+    .row.closed { background: #f1eee9; color: #77716f; }
+    .row.closed::after { content: "该门店已标记闭店"; position: absolute; inset: 0; display: grid; place-items: center; color: #5f5952; background: rgba(238, 235, 230, .72); font-size: 13px; font-weight: 900; pointer-events: none; }
+    .row { position: relative; }
+    .row-source { display: block; margin-top: 5px; color: #aaa29a; font-size: 11px; line-height: 1.35; }
+    .row-actions { grid-template-columns: 1fr 1fr 42px; }
+    .menu-list { display: grid; gap: 8px; }
+    .menu-list button { min-height: 44px; border-radius: 8px; background: #fff; color: #3d3832; font-size: 14px; font-weight: 900; }
+    .detail-hero { overflow: hidden; margin: -24px -22px 18px; background: #fff; }
+    .detail-hero-media { position: relative; height: 214px; display: grid; place-items: center; overflow: hidden; background: linear-gradient(135deg, #fff0d6, #f4d2a2); color: #b76d22; font-size: 42px; font-weight: 900; }
+    .detail-hero-media img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .image-badge { position: absolute; left: 12px; bottom: 12px; padding: 3px 8px; border-radius: 999px; color: #fff; background: rgba(28, 24, 20, .58); font-size: 11px; font-weight: 800; }
+    .detail-hero-body { padding: 16px 22px 18px; }
+    .ai-panel { padding: 14px; border: 1px solid var(--line); border-radius: 8px; background: #fff; }
+    .ai-panel small { display: block; margin: -8px 0 10px; color: #aaa29a; font-size: 11px; }
+    .ai-box { color: #67615a; font-size: 14px; line-height: 1.7; }
+    .ai-box ul { margin: 8px 0 0; padding-left: 18px; }
+    .stars { display: flex; gap: 6px; }
+    .star { width: 36px; height: 36px; border-radius: 8px; display: grid; place-items: center; color: #c3a577; background: #f3eee8; font-size: 20px; }
+    .star.active { color: #fff; background: var(--accent); }
+    .checked { color: #2f8c62; font-size: 13px; font-weight: 900; }
+    .form-card { margin: 0 0 12px; padding: 14px; border: 1px solid var(--line); border-radius: 8px; background: #fff; }
+    .form-card h3 { margin: 0 0 10px; font-size: 16px; font-weight: 900; }
+    .form-tools { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
+    .map-tag { position: absolute; right: 8px; bottom: 8px; padding: 4px 7px; border-radius: 999px; color: #746e67; background: rgba(255,255,255,.92); font-size: 11px; font-weight: 800; }
+    .mini-map { position: relative; }
+    /* v4 App visual refresh */
+    :root {
+      --bg: #F7F7F9;
+      --soft: #F2F2F4;
+      --line: #ECECEF;
+      --text: #202124;
+      --muted: #666666;
+      --accent: #F2761D;
+      --accent-2: #FF8A1F;
+    }
+    body { background: #E9E9ED; }
+    .phone { background: var(--bg); box-shadow: 0 12px 48px rgba(0,0,0,.16); }
+    .screen { padding-left: 16px; padding-right: 16px; }
+    .top { margin-left: -16px; margin-right: -16px; padding: calc(10px + env(safe-area-inset-top)) 16px 10px; background: rgba(247,247,249,.95); border-bottom: 0; }
+    .app-nav { align-items: center; }
+    .title-block h1 { font-size: 28px; letter-spacing: 0; font-weight: 950; }
+    .title-block p { margin-top: 3px; font-size: 13px; color: #8B8B90; }
+    .add-btn { width: 52px; height: 52px; min-height: 52px; border-radius: 50%; font-size: 30px; background: linear-gradient(145deg, #FF8A1F, #EC6F17); box-shadow: 0 10px 22px rgba(242,118,29,.34), 0 2px 6px rgba(0,0,0,.12); }
+    .search { top: 76px; height: 48px; margin: 12px 0 10px; border: 0; border-radius: 12px; background: #F2F2F4; box-shadow: inset 0 1px 0 rgba(255,255,255,.9), 0 4px 12px rgba(0,0,0,.04); padding: 0 14px; }
+    .search input { font-size: 15px; color: #303033; }
+    .mode-tabs { gap: 9px; padding: 4px 0 8px; }
+    .mode-tab, .pill { min-height: 36px; padding: 0 15px; border: 0; border-radius: 18px; background: #ECECEF; color: #4E4E53; font-size: 13px; box-shadow: inset 0 1px 0 rgba(255,255,255,.7); }
+    .mode-tab.active, .pill.active { color: #fff; background: linear-gradient(145deg, #FF8A1F, #F2761D); box-shadow: 0 5px 12px rgba(242,118,29,.22); }
+    .mode-hint { margin: -2px 2px 8px; color: #8C8C92; }
+    .category-strip { gap: 9px; padding: 2px 0 8px; }
+    .stats { margin: 8px 0 8px; padding: 0 2px; }
+    .stat strong { color: #F2761D; }
+    .count { margin: 12px 2px 9px; font-size: 16px; color: #252528; }
+    .list { gap: 10px; overflow: visible; }
+    .row { padding: 13px; margin-bottom: 0; border: 0; border-radius: 14px; background: #FFFFFF; box-shadow: 0 2px 10px rgba(0,0,0,.08); }
+    .row-top { gap: 10px; align-items: flex-start; }
+    .num { min-width: 38px; height: 26px; border-radius: 999px; background: #FFF0E2; color: #F2761D; font-size: 13px; box-shadow: inset 0 1px 0 rgba(255,255,255,.9); }
+    .row-name { font-size: 18px; line-height: 1.25; color: #202124; font-weight: 950; }
+    .row-meta, .row-address { font-size: 12px; color: #666666; line-height: 1.45; }
+    .row-source { color: #9A9AA0; }
+    .row-must { margin-top: 10px; padding: 8px 10px; border-radius: 8px; color: #C45F16; background: #FFF3E8; font-size: 12px; }
+    .row-address { margin-top: 8px; }
+    .row-actions { grid-template-columns: 1fr 1fr 36px; gap: 9px; margin-top: 11px; }
+    .row-action { height: 38px; border-radius: 12px; background: #F4F4F6; color: #55555A; font-size: 13px; box-shadow: inset 0 1px 0 rgba(255,255,255,.8); }
+    .row-action.primary { color: #fff; background: linear-gradient(145deg, #FF8A1F, #F2761D); box-shadow: 0 6px 14px rgba(242,118,29,.24); }
+    .row-actions .row-action:last-child { width: 36px; padding: 0; border-radius: 12px; font-size: 18px; color: #6B6B70; background: #F2F2F4; }
+    .row.closed { background: #F0F0F2; }
+    .row.closed::after { border-radius: 14px; }
+    .nav-head { margin-left: -16px; margin-right: -16px; padding-left: 16px; padding-right: 16px; background: rgba(247,247,249,.95); border-bottom: 0; }
+    .detail-hero, .form-card, .ai-panel, .info-line, .map, .dish-card, .poi-results, .poi-item { border: 0; border-radius: 14px; background: #FFFFFF; box-shadow: 0 2px 10px rgba(0,0,0,.08); }
+    .form-card { padding: 13px; }
+    .field, textarea.field { border: 0; border-radius: 12px; background: #F2F2F4; }
+    .lookup-btn, .save-btn, .add-dish-btn { border-radius: 12px; }
+    .save-btn { background: linear-gradient(145deg, #FF8A1F, #F2761D); box-shadow: 0 8px 18px rgba(242,118,29,.26); }
+    /* v5 home-only app layout: search + left-image restaurant cards */
+    .mode-tabs, .mode-hint, .category-strip, .stats { display: none !important; }
+    .count { margin: 14px 2px 12px; color: #8C8C92; font-size: 12px; font-weight: 700; }
+    .list { gap: 12px; }
+    .row { display: grid; grid-template-columns: 112px 1fr; gap: 13px; padding: 12px; border-radius: 16px; }
+    .row-cover { width: 112px; height: 112px; overflow: hidden; border-radius: 12px; background: linear-gradient(135deg, #FFF0D6, #F7C98B); display: grid; place-items: center; color: #B76318; font-size: 38px; font-weight: 950; }
+    .row-cover img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .row-content { min-width: 0; display: flex; flex-direction: column; }
+    .row-top { gap: 7px; }
+    .num { min-width: 34px; height: 24px; font-size: 12px; }
+    .row-name { font-size: 17px; line-height: 1.28; -webkit-line-clamp: 2; }
+    .row-meta { margin-top: 7px; font-size: 12px; color: #666; white-space: nowrap; }
+    .dish-pills { display: flex; gap: 7px; margin-top: 10px; overflow-x: auto; scrollbar-width: none; white-space: nowrap; }
+    .dish-pills::-webkit-scrollbar { display: none; }
+    .dish-pill { flex: 0 0 auto; padding: 5px 10px; border-radius: 999px; color: #C45F16; background: #FFF3E8; font-size: 11px; font-weight: 800; }
+    .row-actions { grid-template-columns: 1fr 1fr 34px; gap: 8px; margin-top: auto; padding-top: 12px; }
+    .row-action { height: 34px; border-radius: 12px; font-size: 12px; }
+    .row-actions .row-action:last-child { width: 34px; height: 34px; font-size: 17px; }
+    .row-source, .row-address, .row-must { display: none !important; }
+    /* v6 mobile polish: seamless status bar, text-only dish fallback, map zoom, swipe back */
+    .top, .nav-head { background: rgba(247,247,249,.98); box-shadow: none; border-bottom: 0; }
+    .top::after, .nav-head::after { content: ""; position: absolute; left: 16px; right: 16px; bottom: 0; height: 1px; background: rgba(0,0,0,.035); }
+    .dish.no-photo { padding: 10px 12px; background: #FFF7EE; }
+    .dish.no-photo .dish-photo { display: none; }
+    .dish.no-photo strong { margin-top: 0; color: #9A520F; font-size: 14px; }
+    .dish.no-photo span { margin-top: 4px; }
+    .map { cursor: zoom-in; }
+    .map-zoom { position: absolute; right: 12px; top: 12px; z-index: 1; min-height: 30px; padding: 0 10px; border-radius: 999px; display: inline-flex; align-items: center; color: #4E4943; background: rgba(255,255,255,.94); box-shadow: 0 4px 12px rgba(0,0,0,.12); font-size: 12px; font-weight: 900; }
+    /* v7 compact form typography */
+    #formScreen .nav-title { font-size: 17px; }
+    #formScreen .form-card { padding: 12px; margin-bottom: 10px; }
+    #formScreen .form-card h3 { margin-bottom: 8px; font-size: 15px; }
+    #formScreen .form-row { grid-template-columns: 64px 1fr; gap: 10px; padding: 11px 0; }
+    #formScreen .form-row label { padding-top: 9px; font-size: 14px; line-height: 1.25; }
+    #formScreen .field { min-height: 40px; font-size: 14px; }
+    #formScreen textarea.field { min-height: 86px; padding-top: 9px; font-size: 14px; line-height: 1.5; }
+    #formScreen .lookup-line { grid-template-columns: 1fr 64px; gap: 8px; }
+    #formScreen .lookup-btn { height: 38px; font-size: 13px; }
+    #formScreen .add-dish-btn { height: 38px; font-size: 13px; }
+    #formScreen .dish-name-input { min-height: 34px; font-size: 14px; }
+    #formScreen .source-note { font-size: 11px; }
+    #formScreen .save-btn { height: 50px; min-height: 50px; font-size: 16px; }
+    #formScreen .cancel-link { margin-top: 12px; font-size: 14px; }
+    #formScreen .fixed-actions { margin-top: 12px; padding-top: 10px; }
+    /* v8 seamless chrome and swipe animation */
+    html, body { background: #F7F7F9; }
+    .phone {
+      background:
+        linear-gradient(180deg, #F7F7F9 0, #F7F7F9 168px, #F7F7F9 100%);
+      box-shadow: none;
+    }
+    .top, .nav-head {
+      margin-bottom: 10px;
+      background: linear-gradient(180deg, rgba(247,247,249,1) 0%, rgba(247,247,249,.96) 78%, rgba(247,247,249,.88) 100%);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+    }
+    .top::after, .nav-head::after {
+      left: 0;
+      right: 0;
+      bottom: -16px;
+      height: 16px;
+      background: linear-gradient(180deg, rgba(247,247,249,.92), rgba(247,247,249,0));
+      pointer-events: none;
+    }
+    .row {
+      box-shadow: 0 8px 22px rgba(30, 30, 34, .07), 0 1px 0 rgba(255,255,255,.92) inset;
+    }
+    #detailScreen.active {
+      transform: translateX(0);
+      opacity: 1;
+      transition: transform .24s cubic-bezier(.22, 1, .36, 1), opacity .24s ease;
+      will-change: transform, opacity;
+    }
+    #detailScreen.swiping {
+      transition: none;
+    }
+    #detailScreen.swipe-leave {
+      transform: translateX(100%);
+      opacity: .28;
+    }
+    /* v9 compact POI picker and safer selection */
+    #poiSheet .sheet-panel {
+      max-height: min(68vh, 620px);
+      padding: 10px 12px calc(14px + env(safe-area-inset-bottom));
+      border-radius: 18px 18px 0 0;
+      background: #F7F7F9;
+    }
+    #poiSheet .sheet-head {
+      margin: -10px -12px 8px;
+      padding: 10px 12px;
+      border-bottom: 0;
+      background: rgba(247,247,249,.96);
+    }
+    #poiSheet .sheet-title { font-size: 16px; }
+    #poiSheet .sheet-close {
+      width: 34px;
+      height: 34px;
+      font-size: 24px;
+      background: #EFEFF2;
+    }
+    #poiSheet .poi-results {
+      display: grid;
+      gap: 8px;
+      overflow: visible;
+      background: transparent;
+      box-shadow: none;
+      border-radius: 0;
+    }
+    #poiSheet .poi-guide {
+      padding: 8px 10px;
+      border: 0;
+      border-radius: 12px;
+      color: #9A520F;
+      background: #FFF4EA;
+      font-size: 12px;
+      line-height: 1.45;
+      font-weight: 800;
+    }
+    #poiSheet .poi-item {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 10px;
+      align-items: center;
+      width: 100%;
+      padding: 10px;
+      border: 0;
+      border-radius: 14px;
+      background: #fff;
+      box-shadow: 0 2px 10px rgba(0,0,0,.06);
+      text-align: left;
+      cursor: default;
+    }
+    #poiSheet .poi-main { min-width: 0; }
+    #poiSheet .poi-item strong {
+      display: -webkit-box;
+      overflow: hidden;
+      color: #202124;
+      font-size: 14px;
+      line-height: 1.35;
+      font-weight: 900;
+      -webkit-box-orient: vertical;
+      -webkit-line-clamp: 2;
+    }
+    #poiSheet .poi-item span {
+      display: block;
+      margin-top: 4px;
+      overflow: hidden;
+      color: #737378;
+      font-size: 11px;
+      line-height: 1.4;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    #poiSheet .poi-item .source-note { color: #A0A0A6; font-size: 10px; }
+    #poiSheet .poi-select {
+      width: 52px;
+      height: 34px;
+      margin-top: 0;
+      padding: 0;
+      border-radius: 999px;
+      display: inline-grid;
+      place-items: center;
+      color: #fff;
+      background: linear-gradient(145deg, #FF8A1F, #F2761D);
+      font-size: 12px;
+      font-style: normal;
+      font-weight: 900;
+      box-shadow: 0 5px 12px rgba(242,118,29,.22);
+      cursor: pointer;
+    }
+    /* v10 solid search and non-blank swipe back */
+    .search {
+      background: #FFFFFF;
+      border: 1px solid rgba(228, 228, 232, .9);
+      box-shadow: 0 8px 22px rgba(32, 32, 36, .08), inset 0 1px 0 rgba(255,255,255,1);
+    }
+    .search input::placeholder { color: #A3A3AA; opacity: 1; }
+    .screen.swipe-underlay {
+      display: block;
+      position: fixed;
+      inset: 0;
+      left: 50%;
+      z-index: 1;
+      width: min(100%, 430px);
+      padding-left: 16px;
+      padding-right: 16px;
+      overflow: hidden;
+      transform: translateX(-50%);
+      pointer-events: none;
+      background: #F7F7F9;
+    }
+    #detailScreen.active {
+      position: relative;
+      z-index: 2;
+      min-height: 100vh;
+      background: #F7F7F9;
+      box-shadow: -16px 0 34px rgba(0,0,0,.08);
+    }
+    /* v11 compact POI type and iOS zoom guard */
+    html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+    input, textarea, select { font-size: 16px; }
+    #formScreen .field,
+    #formScreen textarea.field,
+    #formScreen .dish-name-input,
+    .search input {
+      font-size: 16px;
+    }
+    #poiSheet .sheet-title { font-size: 15px; }
+    #poiSheet .poi-guide {
+      padding: 7px 9px;
+      font-size: 11px;
+      line-height: 1.4;
+    }
+    #poiSheet .poi-item {
+      gap: 8px;
+      padding: 8px 9px;
+      border-radius: 12px;
+    }
+    #poiSheet .poi-item strong {
+      font-size: 12px;
+      line-height: 1.32;
+      font-weight: 850;
+    }
+    #poiSheet .poi-item span {
+      margin-top: 3px;
+      font-size: 10px;
+      line-height: 1.32;
+    }
+    #poiSheet .poi-item .source-note { font-size: 9px; }
+    #poiSheet .poi-select {
+      width: 46px;
+      height: 30px;
+      font-size: 11px;
+      box-shadow: 0 4px 10px rgba(242,118,29,.18);
+    }
+    /* v12 no default food image */
+    .row-cover {
+      background: #F1F1F4;
+      color: #9C9CA3;
+      font-size: 13px;
+      font-weight: 850;
+    }
+    .row-cover .cover-empty {
+      display: grid;
+      place-items: center;
+      width: 100%;
+      height: 100%;
+    }
+    .row { cursor: pointer; }
+    .row-actions { grid-template-columns: 1fr 34px; }
+    .form-tools.single { grid-template-columns: 1fr; }
+    .detail-hero-media.no-photo {
+      background: #F1F1F4;
+      color: #9C9CA3;
+      font-size: 15px;
+    }
+    /* v13 remove AI tools and open card directly */
+    .ai-panel, .mode-tabs, .mode-hint { display: none !important; }
+    @media (max-width: 370px) {
+      .row { grid-template-columns: 96px 1fr; gap: 10px; }
+      .row-cover { width: 96px; height: 104px; }
+      .row-actions { grid-template-columns: 1fr 32px; }
+      .row-actions .row-action:last-child { grid-column: auto; width: 32px; }
+    }
+    @media (max-width: 370px) {
+      .screen { padding-left: 16px; padding-right: 16px; }
+      .title-block h1 { font-size: 21px; }
+      .detail-title h2 { font-size: 30px; }
+      .dish-grid { grid-template-columns: 1fr 1fr; }
+      .form-row { grid-template-columns: 72px 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="phone">
+    <section class="screen active" id="listScreen">
+      <header class="top">
+        <div class="app-nav"><div class="title-block"><h1>美食收藏</h1><p>今天想吃哪家？</p></div><button class="add-btn" id="addBtn" type="button" aria-label="添加收藏">+</button></div>
+      </header>
+      <div class="search"><input id="searchInput" type="search" placeholder="搜索餐厅名、菜品或地址"><button class="filter-btn" id="filterBtn" type="button">分类</button></div>
+      <div class="category-strip" id="categoryStrip"></div>
+      <div class="stats" id="statsBar"></div>
+      <div class="count" id="countText">共 0 家</div>
+      <div class="list" id="recordList"></div>
+    </section>
+    <section class="screen" id="detailScreen"></section>
+    <section class="screen" id="formScreen">
+      <header class="nav-head"><div class="nav-row"><button class="back" type="button" data-action="back">‹</button><div class="nav-title" id="formTitle">添加收藏</div><span></span></div></header>
+      <form id="recordForm">
+        <input type="hidden" id="recordId">
+        <input type="hidden" id="locationInput">
+        <input type="hidden" id="photoInput">
+        <input type="hidden" id="closedInput">
+        <div class="form-card"><h3>门店信息</h3>
+          <div class="form-row"><label for="nameInput">店名</label><div><div class="lookup-line"><input class="field" id="nameInput" required placeholder="请输入店名"><button class="lookup-btn" id="poiSearchBtn" type="button">搜店</button></div></div></div>
+          <div class="form-row"><label for="addressInput">地址</label><div><input class="field" id="addressInput" required placeholder="请输入详细地址"><div class="mini-map"><img id="formMapImg" src="map-preview.jpg" alt="地图预览"><span class="map-tag" id="formMapTag">点击查看完整地图</span></div></div></div>
+          <div class="form-row"><label for="sourceInput">来源</label><input class="field" id="sourceInput" placeholder="数据来源：高德地图 / 手动录入"></div>
+        </div>
+        <div class="form-card"><h3>必吃菜品</h3>
+          <div class="dish-editor" id="dishEditor"></div>
+          <div class="form-tools single"><button class="add-dish-btn" id="addDishBtn" type="button">+ 添加必吃菜</button></div>
+          <input id="dishPhotoInput" type="file" accept="image/*" hidden>
+        </div>
+        <div class="form-card"><h3>补充信息</h3>
+          <div class="form-row"><label for="categoryInput">分类</label><input class="field" id="categoryInput" placeholder="例如：烧烤 / 面馆 / 火锅"></div>
+          <div class="form-row"><label for="avgPriceInput">人均</label><input class="field" id="avgPriceInput" inputmode="numeric" type="number" min="0" placeholder="例如：120 元"></div>
+          <div class="form-row"><label for="noteInput">备注</label><textarea class="field" id="noteInput" placeholder="可填写环境、营业时间、停车等信息"></textarea></div>
+          <div class="form-tools"><button class="add-dish-btn" id="shopPhotoBtn" type="button">上传门店实拍图</button><button class="add-dish-btn" id="toggleClosedBtn" type="button">标记闭店</button></div>
+          <p class="source-note">高德无门店图片时，可上传本地实拍。</p>
+          <input id="shopPhotoInput" type="file" accept="image/*" hidden>
+        </div>
+        <div class="fixed-actions"><button class="save-btn" id="saveBtn" type="submit">保存收藏</button><button class="cancel-link" id="resetBtn" type="button">重置</button></div>
+      </form>
+    </section>
+  </div>
+  <div class="sheet" id="poiSheet">
+    <div class="sheet-panel">
+      <div class="sheet-head"><span></span><div class="sheet-title">选择店铺</div><button class="sheet-close" id="poiSheetClose" type="button">×</button></div>
+      <div class="poi-results" id="poiResults"></div>
+    </div>
+  </div>
+  <div class="toast" id="toast"></div>
+  <div class="sheet" id="menuSheet">
+    <div class="sheet-panel">
+      <div class="sheet-head"><span></span><div class="sheet-title">店铺操作</div><button class="sheet-close" id="menuClose" type="button">×</button></div>
+      <div class="menu-list" id="menuList"></div>
+    </div>
+  </div>
+  <script>
+    const STORAGE_KEY = "mssc.deploy.records.v2";
+    const SEEDED_KEY = "mssc.deploy.seeded.v2";
+    const AMAP_KEY = "f9984d1012e34ce9b78b41e973ce1c41";
+    const AMAP_CITY = "上海";
+    const listScreen = document.getElementById("listScreen");
+    const detailScreen = document.getElementById("detailScreen");
+    const formScreen = document.getElementById("formScreen");
+    const recordList = document.getElementById("recordList");
+    const searchInput = document.getElementById("searchInput");
+    const categoryStrip = document.getElementById("categoryStrip");
+    const statsBar = document.getElementById("statsBar");
+    const countText = document.getElementById("countText");
+    const toast = document.getElementById("toast");
+    const form = document.getElementById("recordForm");
+    const saveBtn = document.getElementById("saveBtn");
+    const resetBtn = document.getElementById("resetBtn");
+    const nameInput = document.getElementById("nameInput");
+    const addressInput = document.getElementById("addressInput");
+    const poiSearchBtn = document.getElementById("poiSearchBtn");
+    const poiSheet = document.getElementById("poiSheet");
+    const poiSheetClose = document.getElementById("poiSheetClose");
+    const poiResults = document.getElementById("poiResults");
+    const dishEditor = document.getElementById("dishEditor");
+    const addDishBtn = document.getElementById("addDishBtn");
+    const dishPhotoInput = document.getElementById("dishPhotoInput");
+    const shopPhotoInput = document.getElementById("shopPhotoInput");
+    const menuSheet = document.getElementById("menuSheet");
+    const menuClose = document.getElementById("menuClose");
+    const menuList = document.getElementById("menuList");
+    const photos = ["food-roast.jpg", "food-noodles.jpg", "food-bbq.jpg"];
+    const defaultPhotoSet = new Set(photos);
+    const seedRecords = [
+      { id: createId(), name: "松江夜油边", category: "本帮菜", avgPrice: 65, source: "朋友推荐", address: "上海市松江区中山中路 123 弄 6 号", mustEat: ["油边大肠", "红烧肉", "咸菜毛豆"], note: "朋友说油边酥香入味，夜宵首选。", photo: photos[0], createdAt: "2026-08-10T04:00:00.000Z", updatedAt: "2026-08-10T04:00:00.000Z" },
+      { id: createId(), name: "阿婆葱油拌面", category: "小吃快餐", avgPrice: 18, source: "网上刷到", address: "上海市静安区愚园路 68 弄 2 号", mustEat: ["葱油拌面", "辣肉酱", "蛋汤"], note: "刷到好几次，路过附近可以试。", photo: photos[1], createdAt: "2026-08-09T11:30:00.000Z", updatedAt: "2026-08-09T11:30:00.000Z" },
+      { id: createId(), name: "小林炭火烧肉", category: "日式烧肉", avgPrice: 128, source: "朋友推荐", address: "上海市长宁区天山西路 789 号", mustEat: ["和牛上肩", "厚切牛舌", "炭烤五花"], note: "适合周末晚上去，肉质看起来很稳。", photo: photos[2], createdAt: "2026-08-08T12:20:00.000Z", updatedAt: "2026-08-08T12:20:00.000Z" }
+    ];
+    let records = loadRecords();
+    let selectedId = records[0]?.id || "";
+    let activeCategory = "";
+    let previousScreen = "list";
+    let poiCandidates = [];
+    let formDishes = [];
+    let editingDishIndex = -1;
+    let menuRecordId = "";
+    function createId() { if (window.crypto?.randomUUID) return window.crypto.randomUUID(); return `mssc-${Date.now()}-${Math.random().toString(16).slice(2)}`; }
+    function loadRecords() { const raw = localStorage.getItem(STORAGE_KEY); if (raw) { try { const parsed = JSON.parse(raw); return normalizeRecords(Array.isArray(parsed) ? parsed : []); } catch { return []; } } if (!localStorage.getItem(SEEDED_KEY)) { localStorage.setItem(SEEDED_KEY, "1"); localStorage.setItem(STORAGE_KEY, JSON.stringify(seedRecords)); return normalizeRecords(seedRecords); } return []; }
+    function saveRecords() { localStorage.setItem(STORAGE_KEY, JSON.stringify(records)); }
+    function escapeHtml(value) { return String(value ?? "").replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;").replaceAll("'", "&#039;"); }
+    function normalizeDishes(value) { return (Array.isArray(value) ? value : []).map(item => typeof item === "string" ? { name: item, photo: "", ai: false } : { name: item?.name || "", photo: item?.photo || "", ai: Boolean(item?.ai) }).filter(item => item.name || item.photo); }
+    function normalizeRecords(list) { return list.map(item => { const photo = defaultPhotoSet.has(item.photo) ? "" : item.photo || ""; return { ...item, mustEat: normalizeDishes(item.mustEat), photo, photoSource: photo ? item.photoSource || (item.source === "高德地图" ? "高德实拍" : "我的上传") : "", closed: Boolean(item.closed), checkin: Number(item.checkin) || 0 }; }); }
+    function getDishNames(value) { return normalizeDishes(value).map(item => item.name).filter(Boolean); }
+    function sourceLabel(record) { return record.source === "高德地图" ? "数据来自高德地图" : "用户手动录入"; }
+    function statusLabel(record) { return record.closed ? "今日休业" : "营业状态未知"; }
+    function splitNote(note) { const lines = String(note || "").split(/\n+/).map(item => item.trim()).filter(Boolean); const autoMap = new Map(); lines.filter(line => /^(高德评分|电话|营业时间)：/.test(line)).forEach(line => autoMap.set(line.split("：")[0], line)); const manual = lines.filter(line => !/^(高德评分|电话|营业时间)：/.test(line)).join("\n"); return { auto: Array.from(autoMap.values()), manual }; }
+    function stripAutoNote(note) { return splitNote(note).manual; }
+    function formatAutoInfo(lines) { return lines.map(line => { const [label, ...rest] = line.split("："); return `<div class="info-line"><strong>${escapeHtml(label)}</strong><span>${escapeHtml(rest.join("："))}</span></div>`; }).join(""); }
+    function showScreen(name) { listScreen.classList.toggle("active", name === "list"); detailScreen.classList.toggle("active", name === "detail"); formScreen.classList.toggle("active", name === "form"); window.scrollTo({ top: 0, behavior: "instant" }); }
+    function sortedRecords() { return [...records].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)); }
+    function filteredRecords() { const keyword = searchInput.value.trim().toLowerCase(); return sortedRecords().filter(record => { const text = [record.name, record.category, record.address, record.source, record.note, ...getDishNames(record.mustEat)].join(" ").toLowerCase(); return (!keyword || text.includes(keyword)) && (!activeCategory || record.category === activeCategory); }); }
+    function renderCategories() { const categories = Array.from(new Set(records.map(item => item.category).filter(Boolean))); categoryStrip.innerHTML = [`<button class="pill ${activeCategory === "" ? "active" : ""}" data-category="">全部</button>`, ...categories.map(category => `<button class="pill ${activeCategory === category ? "active" : ""}" data-category="${escapeHtml(category)}">${escapeHtml(category)}</button>`)].join(""); categoryStrip.querySelectorAll(".pill").forEach(button => button.addEventListener("click", () => { activeCategory = button.dataset.category || ""; renderList(); })); }
+    function renderStats(items) { const categories = new Set(records.map(item => item.category).filter(Boolean)); statsBar.innerHTML = categories.size ? `<div class="stat"><strong>${records.length}</strong><span>家收藏</span></div><div class="stat"><strong>${categories.size}</strong><span>个菜系分类</span></div>` : `<div class="stat"><strong>${records.length}</strong><span>家收藏</span></div>`; }
+    function renderList() { const items = filteredRecords(); const categoryCount = new Set(records.map(item => item.category).filter(Boolean)).size; countText.textContent = categoryCount ? `${records.length}家收藏 · ${categoryCount}个菜系分类` : `${records.length}家收藏`; if (!items.length) { const emptyText = records.length ? "未找到匹配门店。" : "还没有收藏店铺。"; recordList.innerHTML = `<div class="empty">${emptyText}<br><button class="row-action primary" type="button" data-action="add-empty">添加爱吃的门店</button></div>`; recordList.querySelector('[data-action="add-empty"]').addEventListener("click", () => openForm()); return; } recordList.innerHTML = items.map((record, index) => { const dishes = getDishNames(record.mustEat).slice(0, 5); const mapUrl = getMapLink(record); const cover = record.photo ? `<img src="${escapeHtml(record.photo)}" alt="${escapeHtml(record.name)}" loading="lazy" onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'cover-empty',textContent:'暂无'}))">` : `<span class="cover-empty">暂无</span>`; return `<article class="row ${record.closed ? "closed" : ""}" data-id="${record.id}" role="button" tabindex="0"><div class="row-cover">${cover}</div><div class="row-content"><div class="row-top"><span class="num">#${index + 1}</span><span class="row-main"><strong class="row-name">${escapeHtml(record.name)}</strong><span class="row-meta">${escapeHtml(record.category || "未分类")} · 人均 ¥${escapeHtml(record.avgPrice || "-")}</span></span></div><div class="dish-pills">${dishes.length ? dishes.map(dish => `<span class="dish-pill">${escapeHtml(dish)}</span>`).join("") : `<span class="dish-pill">暂未录入必吃</span>`}</div><div class="row-actions"><a class="row-action" href="${escapeHtml(mapUrl)}" target="_blank" rel="noopener" title="将唤起高德地图进行路线规划">导航前往</a><button class="row-action" type="button" data-action="menu" data-id="${record.id}">⋯</button></div></div></article>`; }).join(""); recordList.querySelectorAll('[data-action="menu"]').forEach(button => button.addEventListener("click", event => { event.stopPropagation(); openMenu(button.dataset.id); })); recordList.querySelectorAll(".row").forEach(card => { let timer = 0; card.addEventListener("click", event => { if (event.target.closest("a,button")) return; openDetail(card.dataset.id); }); card.addEventListener("keydown", event => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); openDetail(card.dataset.id); } }); card.addEventListener("touchstart", () => { timer = setTimeout(() => openMenu(card.dataset.id), 520); }, { passive: true }); card.addEventListener("touchend", () => clearTimeout(timer)); card.addEventListener("touchmove", () => clearTimeout(timer)); }); }
+    function openDetail(id) { selectedId = id; renderDetail(); showScreen("detail"); }
+    function getMapImage(location) { return location ? `https://restapi.amap.com/v3/staticmap?location=${encodeURIComponent(location)}&zoom=16&size=600*360&markers=mid,,A:${encodeURIComponent(location)}&key=${AMAP_KEY}` : "map-preview.jpg"; }
+    function getMapLink(record) { return record.location ? `https://uri.amap.com/marker?position=${encodeURIComponent(record.location)}&name=${encodeURIComponent(record.name)}` : `https://ditu.amap.com/search?query=${encodeURIComponent(record.address)}`; }
+    function updateFormMap(location) { const image = document.getElementById("formMapImg"); image.onerror = () => { image.onerror = null; image.src = "map-preview.jpg"; }; image.src = getMapImage(location); const tag = document.getElementById("formMapTag"); if (tag) tag.textContent = location ? "距离未知 · 营业状态未知" : "点击查看完整地图"; }
+    function renderDetail() { const record = records.find(item => item.id === selectedId); if (!record) { showScreen("list"); renderList(); return; } const mapUrl = getMapLink(record); const mapImage = getMapImage(record.location); const noteParts = splitNote(record.note); const dishes = normalizeDishes(record.mustEat).slice(0, 8); const dishSection = dishes.length ? `<div class="dish-grid">${dishes.map(dish => `<div class="dish ${dish.photo ? "" : "no-photo"}">${dish.photo ? `<div class="dish-photo"><img src="${escapeHtml(dish.photo)}" alt="${escapeHtml(dish.name)}"></div>` : ""}<strong>${escapeHtml(dish.name || "未命名")}</strong><span>必吃菜</span></div>`).join("")}</div>` : `<p class="detail-note">暂未录入必吃菜品。</p>`; const autoInfo = noteParts.auto.length ? `<div class="info-list">${formatAutoInfo(noteParts.auto)}<span class="source-note">数据来自高德地图</span></div>` : ""; const manualNote = noteParts.manual ? `<p class="detail-note">${escapeHtml(noteParts.manual)}</p>` : ""; const noteSection = noteParts.manual ? `<section class="section"><h3>备注</h3>${manualNote}</section>` : ""; detailScreen.innerHTML = `<header class="nav-head"><div class="nav-row"><button class="back" type="button" data-action="list">‹</button><span></span><button class="back" type="button" data-action="menu">⋯</button></div></header><div class="detail-hero"><div class="detail-hero-media ${record.photo ? "" : "no-photo"}">${record.photo ? `<img src="${escapeHtml(record.photo)}" alt="${escapeHtml(record.name)}" onerror="this.onerror=null;this.replaceWith(document.createTextNode('暂无门店图片'))"><span class="image-badge">${escapeHtml(record.photoSource || "门店图")}</span>` : "暂无门店图片"}</div><div class="detail-hero-body"><div class="detail-title"><h2>${escapeHtml(record.name)}</h2></div><div class="detail-meta"><span>${escapeHtml(record.category || "未分类")}</span><span>·</span><span>人均 ¥${escapeHtml(record.avgPrice || "-")}</span><span>·</span><span>${statusLabel(record)}</span><span>·</span><span>${sourceLabel(record)}</span>${record.checkin ? `<span class="checked">已打卡</span>` : ""}</div></div></div>${autoInfo}<section class="section"><h3>必吃推荐</h3>${dishSection}</section><section class="section"><h3>地址</h3><a class="address-line" href="${mapUrl}" target="_blank" rel="noopener" title="将唤起高德地图进行路线规划"><span>${escapeHtml(record.address)}</span><span class="chev">›</span></a><div class="map" data-action="map"><span class="map-zoom">放大查看</span><img src="${escapeHtml(mapImage)}" alt="地图预览" onerror="this.onerror=null;this.src='map-preview.jpg'"><div class="map-info"><span><strong>${escapeHtml(record.name)}</strong><span>${escapeHtml(record.address)}</span><span class="source-note">点击查看完整地图</span></span><a class="nav-btn" href="${mapUrl}" target="_blank" rel="noopener" title="将唤起高德地图进行路线规划">导航前往（高德）</a></div></div></section><section class="section"><h3>打卡打分</h3><div class="stars">${[1,2,3,4,5].map(score => `<button class="star ${record.checkin >= score ? "active" : ""}" data-score="${score}" type="button">★</button>`).join("")}</div></section>${noteSection}<div class="detail-actions"><button class="edit-btn" type="button" data-action="edit">编辑</button><button class="delete-btn" type="button" data-action="delete">删除</button></div>`; detailScreen.querySelector('[data-action="list"]').addEventListener("click", () => showScreen("list")); detailScreen.querySelector('[data-action="menu"]').addEventListener("click", () => openMenu(record.id)); detailScreen.querySelector('[data-action="edit"]').addEventListener("click", () => openForm(record.id)); detailScreen.querySelector('[data-action="delete"]').addEventListener("click", () => deleteRecord(record.id)); detailScreen.querySelector('[data-action="map"]').addEventListener("click", event => { if (event.target.closest("a")) return; window.open(mapUrl, "_blank", "noopener"); }); detailScreen.querySelectorAll(".star").forEach(button => button.addEventListener("click", () => setCheckin(record.id, Number(button.dataset.score)))); }
+    function openForm(id = "") { const record = records.find(item => item.id === id); previousScreen = id ? "detail" : "list"; formDishes = normalizeDishes(record?.mustEat || []); document.getElementById("formTitle").textContent = id ? "编辑收藏" : "添加收藏"; document.getElementById("recordId").value = record?.id || ""; document.getElementById("locationInput").value = record?.location || ""; document.getElementById("photoInput").value = record?.photo || ""; document.getElementById("closedInput").value = record?.closed ? "1" : ""; document.getElementById("nameInput").value = record?.name || ""; document.getElementById("addressInput").value = record?.address || ""; document.getElementById("sourceInput").value = record?.source || ""; document.getElementById("categoryInput").value = record?.category || ""; document.getElementById("avgPriceInput").value = record?.avgPrice || ""; document.getElementById("noteInput").value = record?.note || ""; document.getElementById("toggleClosedBtn").textContent = record?.closed ? "取消闭店标记" : "标记闭店"; renderDishEditor(); updateFormMap(record?.location || ""); clearPoiResults(); showScreen("form"); setTimeout(() => document.getElementById("nameInput").focus(), 50); }
+    function closeForm() { if (previousScreen === "detail" && selectedId) { renderDetail(); showScreen("detail"); } else { renderList(); showScreen("list"); } }
+    function readForm() { const id = document.getElementById("recordId").value; const existing = records.find(item => item.id === id); const now = new Date().toISOString(); const existingPhoto = existing && !defaultPhotoSet.has(existing.photo) ? existing.photo : ""; const photo = document.getElementById("photoInput").value || existingPhoto || ""; const mustEat = formDishes.map(item => ({ name: item.name.trim(), photo: item.photo || "", ai: false })).filter(item => item.name || item.photo); return { id: id || createId(), name: document.getElementById("nameInput").value.trim(), address: document.getElementById("addressInput").value.trim(), location: document.getElementById("locationInput").value.trim(), mustEat, source: document.getElementById("sourceInput").value.trim() || "手动录入", category: document.getElementById("categoryInput").value.trim(), avgPrice: Number(document.getElementById("avgPriceInput").value) || "", note: document.getElementById("noteInput").value.trim(), photo, photoSource: photo ? document.getElementById("photoInput").value ? "我的上传" : existing?.photoSource || "我的上传" : "", closed: document.getElementById("closedInput").value === "1", checkin: existing?.checkin || 0, createdAt: existing?.createdAt || now, updatedAt: now }; }
+    function deleteRecord(id = selectedId) { const record = records.find(item => item.id === id); if (!record || !confirm("确定要删除该店铺收藏吗？已保存的菜品与贴士将会一并清除。")) return; records = records.filter(item => item.id !== id); selectedId = records[0]?.id || ""; saveRecords(); closeMenu(); renderList(); showScreen("list"); showToast("已删除店铺收藏"); }
+    function setCheckin(id, score) { const record = records.find(item => item.id === id); if (!record) return; record.checkin = score; saveRecords(); renderDetail(); showToast(`已打卡 ${score} 星`); }
+    function openMenu(id) { menuRecordId = id; const record = records.find(item => item.id === id); if (!record) return; menuList.innerHTML = `<button data-action="edit">编辑信息</button><button data-action="photo">上传实拍图</button><button data-action="copy">复制地址</button><button data-action="closed">${record.closed ? "取消闭店标记" : "标记闭店"}</button><button data-action="delete">删除店铺</button>`; menuSheet.classList.add("show"); }
+    function closeMenu() { menuSheet.classList.remove("show"); }
+    function toggleClosed(id) { const record = records.find(item => item.id === id); if (!record) return; record.closed = !record.closed; saveRecords(); closeMenu(); detailScreen.classList.contains("active") ? renderDetail() : renderList(); showToast(record.closed ? "该门店已标记闭店" : "已取消闭店标记"); }
+    function showToast(message) { toast.textContent = message; toast.classList.add("show"); clearTimeout(showToast.timer); showToast.timer = setTimeout(() => toast.classList.remove("show"), 1600); }
+    function jsonp(url, params) { return new Promise((resolve, reject) => { const callback = `amapPoi${Date.now()}${Math.random().toString(16).slice(2)}`; const script = document.createElement("script"); const query = new URLSearchParams({ ...params, callback }); const timer = setTimeout(() => { cleanup(); reject(new Error("请求超时")); }, 10000); function cleanup() { clearTimeout(timer); script.remove(); delete window[callback]; } window[callback] = data => { cleanup(); resolve(data); }; script.onerror = () => { cleanup(); reject(new Error("接口请求失败")); }; script.src = `${url}?${query.toString()}`; document.body.appendChild(script); }); }
+    function cleanAmapValue(value) { if (Array.isArray(value)) return value.filter(Boolean).join(" "); if (!value || value === "[]" || value === "0") return ""; return String(value); }
+    function getPoiAddress(poi) { return cleanAmapValue(poi.address) || [cleanAmapValue(poi.pname), cleanAmapValue(poi.cityname), cleanAmapValue(poi.adname)].filter(Boolean).join(""); }
+    function getPoiCategory(poi) { return cleanAmapValue(poi.type).split(";").filter(Boolean).pop() || "餐饮"; }
+    function getPoiCost(poi) { const cost = cleanAmapValue(poi.biz_ext?.cost || poi.biz_ext?.avg_cost); const number = Number(String(cost).replace(/[^\d.]/g, "")); return number > 0 ? Math.round(number) : ""; }
+    function openPoiSheet() { poiSheet.classList.add("show"); }
+    function closePoiSheet() { poiSheet.classList.remove("show"); }
+    function clearPoiResults() { poiCandidates = []; poiResults.innerHTML = ""; closePoiSheet(); }
+    function renderDishEditor() { dishEditor.innerHTML = formDishes.length ? formDishes.map((dish, index) => `<div class="dish-card" data-index="${index}"><div class="dish-photo">${dish.photo ? `<img src="${escapeHtml(dish.photo)}" alt="${escapeHtml(dish.name)}">` : escapeHtml((dish.name || "味").slice(0, 1))}</div><input class="dish-name-input" value="${escapeHtml(dish.name)}" placeholder="菜品名称"><div class="dish-actions"><button class="tiny-btn" type="button" data-action="upload">上传</button><button class="tiny-btn danger" type="button" data-action="delete">删除</button></div></div>`).join("") : `<div class="poi-empty">暂未录入必吃菜品。搜店后可自动推荐，也可以手动添加。</div>`; dishEditor.querySelectorAll(".dish-card").forEach(card => { const index = Number(card.dataset.index); card.querySelector(".dish-name-input").addEventListener("input", event => { formDishes[index].name = event.target.value; }); card.querySelector('[data-action="upload"]').addEventListener("click", () => { editingDishIndex = index; dishPhotoInput.click(); }); card.querySelector('[data-action="delete"]').addEventListener("click", () => { formDishes.splice(index, 1); renderDishEditor(); }); }); }
+    function addDish(name = "") { formDishes.push({ name, photo: "", ai: false }); renderDishEditor(); }
+    function compressImage(file) { return new Promise((resolve, reject) => { const reader = new FileReader(); reader.onerror = reject; reader.onload = () => { const image = new Image(); image.onerror = reject; image.onload = () => { const canvas = document.createElement("canvas"); const maxSide = 720; const scale = Math.min(1, maxSide / Math.max(image.width, image.height)); canvas.width = Math.max(1, Math.round(image.width * scale)); canvas.height = Math.max(1, Math.round(image.height * scale)); canvas.getContext("2d").drawImage(image, 0, 0, canvas.width, canvas.height); resolve(canvas.toDataURL("image/jpeg", .78)); }; image.src = reader.result; }; reader.readAsDataURL(file); }); }
+    function getPoiDishes(poi) { return cleanAmapValue(poi.tag || poi.atag).split(/[,，;；、]/).map(item => item.trim()).filter(item => item && !/单人餐|双人餐|套餐|团购|外卖/.test(item)).slice(0, 5); }
+    function renderPoiResults(items) { poiCandidates = items; openPoiSheet(); if (!items.length) { poiResults.innerHTML = `<div class="poi-empty">未找到匹配门店，可手动新增店铺。<br><button type="button" data-action="manual-poi">继续手动录入</button></div>`; poiResults.querySelector('[data-action="manual-poi"]').addEventListener("click", closePoiSheet); return; } poiResults.innerHTML = `<div class="poi-guide">请确认门店后点击右侧“选择”，滑动列表不会自动填入。</div>${items.map((poi, index) => { const dishes = getPoiDishes(poi).slice(0, 2).join("、"); return `<div class="poi-item" data-index="${index}"><div class="poi-main"><strong>${escapeHtml(poi.name)}</strong><span>${escapeHtml(getPoiCategory(poi))} · ${escapeHtml(getPoiAddress(poi) || "暂无地址")}</span>${dishes ? `<span>推荐：${escapeHtml(dishes)}</span>` : ""}<span class="source-note">数据来自高德地图</span></div><button class="poi-select" type="button" data-action="select-poi" data-index="${index}">选择</button></div>`; }).join("")}`; poiResults.querySelectorAll('[data-action="select-poi"]').forEach(button => button.addEventListener("click", event => { event.stopPropagation(); applyPoi(Number(button.dataset.index)); })); }
+    async function searchPoi() { const keyword = nameInput.value.trim(); if (!keyword) { showToast("请输入店铺名称"); return; } poiSearchBtn.disabled = true; poiSearchBtn.textContent = "检索中"; showToast("正在检索高德商户库"); try { const data = await jsonp("https://restapi.amap.com/v3/place/text", { key: AMAP_KEY, keywords: keyword, types: "050000", city: AMAP_CITY, citylimit: "false", offset: "10", page: "1", extensions: "all", output: "JSON" }); if (data.status !== "1") throw new Error(data.info || "高德接口返回异常"); renderPoiResults(Array.isArray(data.pois) ? data.pois : []); } catch (error) { clearPoiResults(); showToast("门店信息获取失败，请稍后重试或手动填写信息"); } finally { poiSearchBtn.disabled = false; poiSearchBtn.textContent = "搜店"; } }
+    function applyPoi(index) { const poi = poiCandidates[index]; if (!poi) return; const address = getPoiAddress(poi); const category = getPoiCategory(poi); const avgPrice = getPoiCost(poi); const location = cleanAmapValue(poi.location); const rating = cleanAmapValue(poi.biz_ext?.rating); const tel = cleanAmapValue(poi.tel); const opentime = cleanAmapValue(poi.biz_ext?.opentime_today || poi.biz_ext?.opentime2 || poi.biz_ext?.open_time || poi.biz_ext?.opentime); const noteLines = [rating ? `高德评分：${rating}` : "", tel ? `电话：${tel}` : "", opentime ? `营业时间：${opentime}` : ""].filter(Boolean); document.getElementById("nameInput").value = cleanAmapValue(poi.name); document.getElementById("locationInput").value = location; if (address) document.getElementById("addressInput").value = address; if (category) document.getElementById("categoryInput").value = category; if (avgPrice) document.getElementById("avgPriceInput").value = avgPrice; if (!document.getElementById("sourceInput").value.trim()) document.getElementById("sourceInput").value = "高德地图"; const dishes = getPoiDishes(poi); if (!formDishes.some(item => item.name.trim()) && dishes.length) { formDishes = dishes.map(name => ({ name, photo: "" })); renderDishEditor(); } const noteInput = document.getElementById("noteInput"); const manualNote = stripAutoNote(noteInput.value).trim(); noteInput.value = [manualNote, ...noteLines].filter(Boolean).join("\n"); updateFormMap(location); closePoiSheet(); showToast(dishes.length ? "已填入店铺信息和推荐必吃" : "已填入店铺信息"); }
+    async function geocodeAddress() { const address = addressInput.value.trim(); if (!address) { document.getElementById("locationInput").value = ""; updateFormMap(""); return; } try { const data = await jsonp("https://restapi.amap.com/v3/geocode/geo", { key: AMAP_KEY, address, city: AMAP_CITY, output: "JSON" }); const location = cleanAmapValue(data.geocodes?.[0]?.location); if (data.status === "1" && location) { document.getElementById("locationInput").value = location; updateFormMap(location); } } catch { /* Manual address can still be saved when geocoding fails. */ } }
+    document.getElementById("addBtn").addEventListener("click", () => openForm());
+    document.getElementById("filterBtn").addEventListener("click", () => categoryStrip.classList.toggle("show"));
+    searchInput.addEventListener("input", renderList);
+    poiSearchBtn.addEventListener("click", searchPoi);
+    poiSheetClose.addEventListener("click", closePoiSheet);
+    poiSheet.addEventListener("click", event => { if (event.target === poiSheet) closePoiSheet(); });
+    menuClose.addEventListener("click", closeMenu);
+    menuSheet.addEventListener("click", event => { if (event.target === menuSheet) closeMenu(); });
+    menuList.addEventListener("click", async event => { const action = event.target.dataset.action; const record = records.find(item => item.id === menuRecordId); if (!action || !record) return; if (action === "edit") { closeMenu(); openForm(record.id); } if (action === "photo") { closeMenu(); shopPhotoInput.click(); } if (action === "copy") { try { await navigator.clipboard.writeText(record.address || ""); showToast("地址已复制"); } catch { showToast("复制失败，请手动复制地址"); } closeMenu(); } if (action === "closed") toggleClosed(record.id); if (action === "delete") deleteRecord(record.id); });
+    addDishBtn.addEventListener("click", () => addDish());
+    document.getElementById("shopPhotoBtn").addEventListener("click", () => shopPhotoInput.click());
+    document.getElementById("toggleClosedBtn").addEventListener("click", () => { const input = document.getElementById("closedInput"); input.value = input.value === "1" ? "" : "1"; document.getElementById("toggleClosedBtn").textContent = input.value === "1" ? "取消闭店标记" : "标记闭店"; });
+    dishPhotoInput.addEventListener("change", async event => { const file = event.target.files?.[0]; if (!file || editingDishIndex < 0) return; try { formDishes[editingDishIndex].photo = await compressImage(file); renderDishEditor(); showToast("图片已上传"); } catch { showToast("图片处理失败"); } finally { event.target.value = ""; editingDishIndex = -1; } });
+    shopPhotoInput.addEventListener("change", async event => { const file = event.target.files?.[0]; if (!file) return; try { const photo = await compressImage(file); if (formScreen.classList.contains("active")) { document.getElementById("photoInput").value = photo; showToast("门店实拍图已上传"); } else if (menuRecordId) { const record = records.find(item => item.id === menuRecordId); if (record) { record.photo = photo; record.photoSource = "我的上传"; saveRecords(); renderList(); showToast("门店实拍图已上传"); } } } catch { showToast("图片处理失败"); } finally { event.target.value = ""; } });
+    nameInput.addEventListener("keydown", event => { if (event.key === "Enter") { event.preventDefault(); searchPoi(); } });
+    addressInput.addEventListener("blur", geocodeAddress);
+    document.querySelectorAll('[data-action="back"]').forEach(button => button.addEventListener("click", closeForm));
+    let detailSwipeStartX = 0;
+    let detailSwipeStartY = 0;
+    let detailSwipeActive = false;
+    function prepareSwipeUnderlay() {
+      renderList();
+      listScreen.classList.add("swipe-underlay");
+    }
+    function resetDetailSwipe() {
+      detailSwipeActive = false;
+      detailScreen.classList.remove("swiping", "swipe-leave");
+      listScreen.classList.remove("swipe-underlay");
+      detailScreen.style.transform = "";
+      detailScreen.style.opacity = "";
+    }
+    detailScreen.addEventListener("touchstart", event => {
+      const touch = event.touches?.[0];
+      if (!touch || !detailScreen.classList.contains("active")) return;
+      detailSwipeStartX = touch.clientX;
+      detailSwipeStartY = touch.clientY;
+      detailSwipeActive = detailSwipeStartX < 38;
+      if (detailSwipeActive) {
+        prepareSwipeUnderlay();
+        detailScreen.classList.add("swiping");
+      }
+    }, { passive: true });
+    detailScreen.addEventListener("touchmove", event => {
+      if (!detailSwipeActive) return;
+      const touch = event.touches?.[0];
+      if (!touch) return;
+      const dx = Math.max(0, touch.clientX - detailSwipeStartX);
+      const dy = Math.abs(touch.clientY - detailSwipeStartY);
+      if (dy > 58 && dx < 42) {
+        resetDetailSwipe();
+        return;
+      }
+      const offset = Math.min(dx, 190);
+      detailScreen.style.transform = `translateX(${offset}px)`;
+      detailScreen.style.opacity = String(Math.max(.74, 1 - dx / 420));
+    }, { passive: true });
+    detailScreen.addEventListener("touchend", event => {
+      if (!detailSwipeActive) return;
+      const touch = event.changedTouches?.[0];
+      const dx = touch ? touch.clientX - detailSwipeStartX : 0;
+      const dy = touch ? Math.abs(touch.clientY - detailSwipeStartY) : 0;
+      detailScreen.classList.remove("swiping");
+      if (dx > 88 && dy < 62) {
+        detailScreen.classList.add("swipe-leave");
+        detailScreen.style.transform = "translateX(100%)";
+        detailScreen.style.opacity = ".28";
+        window.setTimeout(() => {
+          renderList();
+          showScreen("list");
+          resetDetailSwipe();
+        }, 180);
+        return;
+      }
+      detailScreen.style.transform = "translateX(0)";
+      detailScreen.style.opacity = "1";
+      window.setTimeout(resetDetailSwipe, 230);
+    }, { passive: true });
+    detailScreen.addEventListener("touchcancel", resetDetailSwipe, { passive: true });
+    resetBtn.addEventListener("click", () => openForm(document.getElementById("recordId").value));
+    form.addEventListener("submit", event => { event.preventDefault(); const nextRecord = readForm(); if (!nextRecord.name) { showToast("请输入店铺名称"); return; } if (!nextRecord.address) { showToast("请输入详细地址"); return; } saveBtn.disabled = true; saveBtn.textContent = "正在保存…"; try { const index = records.findIndex(item => item.id === nextRecord.id); if (index >= 0) records[index] = nextRecord; else records.unshift(nextRecord); selectedId = nextRecord.id; saveRecords(); renderList(); renderDetail(); showScreen("detail"); showToast("已保存收藏"); } finally { saveBtn.disabled = false; saveBtn.textContent = "保存收藏"; } });
+    renderList();
+  </script>
+</body>
+</html>
